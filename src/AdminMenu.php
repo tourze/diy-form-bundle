@@ -4,11 +4,10 @@ namespace DiyFormBundle;
 
 use DiyFormBundle\Entity\Form;
 use Knp\Menu\ItemInterface;
-use Tourze\EasyAdminMenuBundle\Attribute\MenuProvider;
 use Tourze\EasyAdminMenuBundle\Service\LinkGeneratorInterface;
+use Tourze\EasyAdminMenuBundle\Service\MenuProviderInterface;
 
-#[MenuProvider]
-class AdminMenu
+class AdminMenu implements MenuProviderInterface
 {
     public function __construct(private LinkGeneratorInterface $linkGenerator)
     {
