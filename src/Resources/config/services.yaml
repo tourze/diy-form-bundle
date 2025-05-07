@@ -1,0 +1,19 @@
+services:
+  # default configuration for services in *this* file
+  _defaults:
+    autowire: true      # Automatically injects dependencies in your services.
+    autoconfigure: true # Automatically registers your services as commands, event subscribers, etc.
+    public: true
+
+  DiyFormBundle\Controller\:
+    resource: '../../Controller/'
+  DiyFormBundle\EventListener\:
+    resource: '../../EventListener/'
+  DiyFormBundle\ExpressionLanguage\:
+    resource: '../../ExpressionLanguage/'
+  DiyFormBundle\Procedure\:
+    resource: '../../Procedure/'
+  DiyFormBundle\Repository\:
+    resource: '../../Repository/'
+  DiyFormBundle\Service\:
+    resource: '../../Service/'
