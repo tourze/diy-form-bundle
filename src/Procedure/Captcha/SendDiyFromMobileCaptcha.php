@@ -89,7 +89,7 @@ class SendDiyFromMobileCaptcha extends LockableProcedure
 
         // 将手机号码/表单合并成一个key存储起来
         $captchaKey = $this->phoneNumberService->buildCaptchaCacheKey($form, $this->phoneNumber);
-        $this->cache->set($captchaKey, $code, HOUR_IN_SECONDS);
+        $this->cache->set($captchaKey, $code, 60 * 60);
 
         return [
             '__message' => '发送成功',
