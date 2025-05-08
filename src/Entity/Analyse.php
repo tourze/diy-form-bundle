@@ -8,7 +8,6 @@ use DiyFormBundle\Repository\AnalyseRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use DoctrineEnhanceBundle\Traits\RemarkableAware;
-use DoctrineEnhanceBundle\Traits\SortableTrait;
 use Symfony\Component\Serializer\Attribute\Groups;
 use Symfony\Component\Serializer\Attribute\Ignore;
 use Tourze\Arrayable\ApiArrayInterface;
@@ -78,7 +77,34 @@ class Analyse implements \Stringable, ApiArrayInterface
         return $this->updateTime;
     }
     use RemarkableAware;
-    use SortableTrait;
+
+    /**
+     * order值大的排序靠前。有效的值范围是[0, 2^32].
+     */
+    #[IndexColumn]
+    #[FormField]
+    #[ListColumn(order: 95, sorter: true)]
+    #[ORM\Column(type: Types::INTEGER, nullable: true, options: ['default' => '0', 'comment' => '次序值'])]
+    private ?int $sortNumber = 0;
+
+    public function getSortNumber(): ?int
+    {
+        return $this->sortNumber;
+    }
+
+    public function setSortNumber(?int $sortNumber): self
+    {
+        $this->sortNumber = $sortNumber;
+
+        return $this;
+    }
+
+    public function retrieveSortableArray(): array
+    {
+        return [
+            'sortNumber' => $this->getSortNumber(),
+        ];
+    }
 
     #[ExportColumn]
     #[ListColumn(order: -1, sorter: true)]
