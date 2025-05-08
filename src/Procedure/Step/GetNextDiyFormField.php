@@ -10,6 +10,7 @@ use DiyFormBundle\Repository\FormRepository;
 use DiyFormBundle\Repository\RecordRepository;
 use DiyFormBundle\Service\SessionService;
 use Doctrine\Common\Collections\Criteria;
+use Monolog\Attribute\WithMonologChannel;
 use Psr\Log\LoggerInterface;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\ExpressionLanguage\SyntaxError;
@@ -29,6 +30,7 @@ use Tourze\JsonRPCLogBundle\Attribute\Log;
 #[MethodExpose('GetNextDiyFormField')]
 #[IsGranted('IS_AUTHENTICATED_FULLY')]
 #[Log]
+#[WithMonologChannel('procedure')]
 class GetNextDiyFormField extends LockableProcedure
 {
     #[MethodParam('表单ID')]
@@ -45,7 +47,7 @@ class GetNextDiyFormField extends LockableProcedure
         private readonly DataRepository $dataRepository,
         private readonly Security $security,
         private readonly EventDispatcherInterface $eventDispatcher,
-        private readonly LoggerInterface $procedureLogger,
+        private readonly LoggerInterface $logger,
     ) {
     }
 
@@ -71,7 +73,7 @@ class GetNextDiyFormField extends LockableProcedure
         try {
             $nextField = $this->sessionService->getNextField($record);
         } catch (SyntaxError $exception) {
-            $this->procedureLogger->error('解析表达式时发生语法错误', [
+            $this->logger->error('解析表达式时发生语法错误', [
                 'exception' => $exception,
             ]);
             throw new ApiException('判断时发生语法错误，请联系客服', 0, [], $exception);

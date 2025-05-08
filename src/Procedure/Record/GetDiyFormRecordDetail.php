@@ -10,6 +10,7 @@ use DiyFormBundle\Event\RecordFormatEvent;
 use DiyFormBundle\Repository\RecordRepository;
 use DiyFormBundle\Service\ExpressionService;
 use DiyFormBundle\Service\TagCalculator;
+use Monolog\Attribute\WithMonologChannel;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\ExpressionLanguage\ExpressionLanguage;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
@@ -26,6 +27,7 @@ use Tourze\JsonRPC\Core\Procedure\BaseProcedure;
 #[MethodDoc('获取用户的表单提交记录')]
 #[MethodTag('动态表单')]
 #[MethodExpose('GetDiyFormRecordDetail')]
+#[WithMonologChannel('procedure')]
 class GetDiyFormRecordDetail extends BaseProcedure
 {
     #[MethodParam('记录ID')]
@@ -37,7 +39,7 @@ class GetDiyFormRecordDetail extends BaseProcedure
         private readonly ExpressionService $expressionService,
         private readonly TagCalculator $tagCalculator,
         private readonly EventDispatcherInterface $eventDispatcher,
-        private readonly LoggerInterface $procedureLogger,
+        private readonly LoggerInterface $logger,
     ) {
     }
 
@@ -85,7 +87,7 @@ class GetDiyFormRecordDetail extends BaseProcedure
                     $res = true;
                 } else {
                     $res = $expressionLanguage->evaluate($expressionStatement, $values);
-                    $this->procedureLogger->debug("运算表达式计算：{$expressionStatement}", [
+                    $this->logger->debug("运算表达式计算：{$expressionStatement}", [
                         'result' => $res,
                         'values' => $values,
                     ]);
