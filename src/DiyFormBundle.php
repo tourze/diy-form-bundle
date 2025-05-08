@@ -13,7 +13,6 @@ class DiyFormBundle extends Bundle implements BundleDependencyInterface
             \Tourze\DoctrineSnowflakeBundle\DoctrineSnowflakeBundle::class => ['all' => true],
             \Tourze\DoctrineTimestampBundle\DoctrineTimestampBundle::class => ['all' => true],
             \Tourze\DoctrineIndexedBundle\DoctrineIndexedBundle::class => ['all' => true],
-            \AntdCpBundle\AntdCpBundle::class => ['all' => true],
         ];
     }
 }
