@@ -2,7 +2,6 @@
 
 namespace DiyFormBundle\Procedure\Record;
 
-use AppBundle\Service\UserService;
 use Carbon\Carbon;
 use DiyFormBundle\Entity\Data;
 use DiyFormBundle\Entity\Record;
@@ -13,6 +12,7 @@ use DiyFormBundle\Repository\FormRepository;
 use DiyFormBundle\Service\PhoneNumberService;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\SimpleCache\CacheInterface;
+use Symfony\Bridge\Doctrine\Security\User\UserLoaderInterface;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
@@ -50,7 +50,7 @@ class SubmitDiyFormFullRecord extends LockableProcedure
         private readonly FormRepository $formRepository,
         private readonly FieldRepository $fieldRepository,
         private readonly EntityManagerInterface $entityManager,
-        private readonly UserService $userService,
+        private readonly UserLoaderInterface $userLoader,
         private readonly CacheInterface $cache,
         private readonly PhoneNumberService $phoneNumberService,
         private readonly Security $security,
@@ -76,7 +76,7 @@ class SubmitDiyFormFullRecord extends LockableProcedure
 
         // 获取邀请人信息
         if ($this->inviter) {
-            $inviter = $this->userService->findUserByIdentity($this->inviter);
+            $inviter = $this->userLoader->loadUserByIdentifier($this->inviter);
             $record->setInviter($inviter);
         }
 
