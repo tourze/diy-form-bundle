@@ -7,7 +7,6 @@ use AntdCpBundle\Builder\Field\LongTextField;
 use DiyFormBundle\Repository\AnalyseRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
-use DoctrineEnhanceBundle\Traits\RemarkableAware;
 use Symfony\Component\Serializer\Attribute\Groups;
 use Symfony\Component\Serializer\Attribute\Ignore;
 use Tourze\Arrayable\ApiArrayInterface;
@@ -76,7 +75,22 @@ class Analyse implements \Stringable, ApiArrayInterface
     {
         return $this->updateTime;
     }
-    use RemarkableAware;
+
+    #[FormField]
+    #[ORM\Column(type: Types::TEXT, nullable: true, options: ['comment' => '备注', 'default' => ''])]
+    private ?string $remark = null;
+
+    public function getRemark(): ?string
+    {
+        return $this->remark;
+    }
+
+    public function setRemark(?string $remark): self
+    {
+        $this->remark = $remark;
+
+        return $this;
+    }
 
     /**
      * order值大的排序靠前。有效的值范围是[0, 2^32].

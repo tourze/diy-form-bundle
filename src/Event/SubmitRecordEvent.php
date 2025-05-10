@@ -2,11 +2,22 @@
 
 namespace DiyFormBundle\Event;
 
-use AppBundle\Event\HaveUserAware;
+use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Contracts\EventDispatcher\Event;
 
 class SubmitRecordEvent extends Event
 {
     use RecordAware;
-    use HaveUserAware;
+
+    private UserInterface $user;
+
+    public function getUser(): UserInterface
+    {
+        return $this->user;
+    }
+
+    public function setUser(UserInterface $user): void
+    {
+        $this->user = $user;
+    }
 }
