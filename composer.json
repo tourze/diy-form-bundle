@@ -68,5 +68,10 @@
     "psr-4": {
       "DiyFormBundle\\": "src"
     }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "DiyFormBundle\\Tests\\": "tests"
+    }
   }
 }
