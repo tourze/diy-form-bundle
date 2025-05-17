@@ -54,6 +54,7 @@
     "tourze/json-rpc-paginator-bundle": "0.0.*",
     "tourze/symfony-ecol-bundle": "0.1.*",
     "tourze/text-manage-bundle": "0.0.*",
+    "tourze/user-avatar-bundle": "0.0.*",
     "tourze/user-event-bundle": "~0.0.3",
     "tourze/user-id-bundle": "0.1.*",
     "yiisoft/arrays": "^3",

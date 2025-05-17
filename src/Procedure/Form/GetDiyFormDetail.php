@@ -32,10 +32,12 @@ class GetDiyFormDetail extends BaseProcedure
         if (!$form) {
             throw new ApiException('找不到表单配置');
         }
-        if ($form->getStartTime()->format('Y-m-d H:i:s') > Carbon::parse()->format('Y-m-d H:i:s')) {
+
+        $now = Carbon::now();
+        if ($now->lessThan($form->getStartTime())) {
             throw new ApiException('该表单还未开始');
         }
-        if ($form->getEndTime()->format('Y-m-d H:i:s') < Carbon::parse()->format('Y-m-d H:i:s')) {
+        if ($now->greaterThan($form->getEndTime())) {
             throw new ApiException('该表单已结束');
         }
 

@@ -2,7 +2,6 @@
 
 namespace DiyFormBundle\Procedure\Record;
 
-use AppBundle\Service\AvatarService;
 use DiyFormBundle\Entity\Record;
 use DiyFormBundle\Event\RecordFormatEvent;
 use DiyFormBundle\Repository\FormRepository;
@@ -19,6 +18,7 @@ use Tourze\JsonRPC\Core\Attribute\MethodTag;
 use Tourze\JsonRPC\Core\Exception\ApiException;
 use Tourze\JsonRPC\Core\Procedure\BaseProcedure;
 use Tourze\JsonRPCPaginatorBundle\Procedure\PaginatorTrait;
+use Tourze\UserAvatarBundle\Service\AvatarServiceInterface;
 
 #[IsGranted('IS_AUTHENTICATED_FULLY')]
 #[MethodDoc('获取我邀请过来填写的表单列表')]
@@ -37,7 +37,7 @@ class GetMyInviteFormRecordList extends BaseProcedure
         private readonly Security $security,
         private readonly EventDispatcherInterface $eventDispatcher,
         private readonly NormalizerInterface $normalizer,
-        private readonly AvatarService $avatarService,
+        private readonly AvatarServiceInterface $avatarService,
     ) {
     }
 
