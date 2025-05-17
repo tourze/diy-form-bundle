@@ -2,7 +2,7 @@
 
 namespace DiyFormBundle\Entity;
 
-use AppBundle\Enum\SmsReceiveEnum;
+use DiyFormBundle\Enum\SmsReceiveEnum;
 use DiyFormBundle\Repository\SendLogRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;

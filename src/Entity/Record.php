@@ -8,7 +8,6 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
-use DoctrineEnhanceBundle\Traits\ExtraDataAware;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Serializer\Attribute\Groups;
 use Symfony\Component\Serializer\Attribute\Ignore;
@@ -41,28 +40,6 @@ class Record
     #[ORM\GeneratedValue]
     #[ORM\Column(type: Types::INTEGER, options: ['comment' => 'ID'])]
     private ?int $id = 0;
-
-    public function getId(): ?int
-    {
-        return $this->id;
-    }
-    use ExtraDataAware;
-
-    #[CreatedByColumn]
-    #[ORM\Column(nullable: true, options: ['comment' => '创建人'])]
-    private ?string $createdBy = null;
-
-    #[UpdatedByColumn]
-    #[ORM\Column(nullable: true, options: ['comment' => '更新人'])]
-    private ?string $updatedBy = null;
-
-    #[CreateUserAgentColumn]
-    #[ORM\Column(type: Types::TEXT, nullable: true, options: ['comment' => '创建时UA'])]
-    private ?string $createdFromUa = null;
-
-    #[UpdateUserAgentColumn]
-    #[ORM\Column(type: Types::TEXT, nullable: true, options: ['comment' => '更新时UA'])]
-    private ?string $updatedFromUa = null;
 
     #[ExportColumn]
     #[Groups(['restful_read'])]
@@ -113,6 +90,25 @@ class Record
     #[ORM\Column(type: Types::INTEGER, nullable: true, options: ['default' => 1, 'comment' => '乐观锁版本号'])]
     private ?int $lockVersion = null;
 
+    #[ORM\Column(type: Types::JSON, nullable: true, options: ['comment' => '额外信息'])]
+    private ?array $extraData = [];
+
+    #[CreatedByColumn]
+    #[ORM\Column(nullable: true, options: ['comment' => '创建人'])]
+    private ?string $createdBy = null;
+
+    #[UpdatedByColumn]
+    #[ORM\Column(nullable: true, options: ['comment' => '更新人'])]
+    private ?string $updatedBy = null;
+
+    #[CreateUserAgentColumn]
+    #[ORM\Column(type: Types::TEXT, nullable: true, options: ['comment' => '创建时UA'])]
+    private ?string $createdFromUa = null;
+
+    #[UpdateUserAgentColumn]
+    #[ORM\Column(type: Types::TEXT, nullable: true, options: ['comment' => '更新时UA'])]
+    private ?string $updatedFromUa = null;
+
     /**
      * @DateRangePickerField()
      */
@@ -143,48 +139,9 @@ class Record
         $this->datas = new ArrayCollection();
     }
 
-    public function setCreatedBy(?string $createdBy): self
+    public function getId(): ?int
     {
-        $this->createdBy = $createdBy;
-
-        return $this;
-    }
-
-    public function getCreatedBy(): ?string
-    {
-        return $this->createdBy;
-    }
-
-    public function setUpdatedBy(?string $updatedBy): self
-    {
-        $this->updatedBy = $updatedBy;
-
-        return $this;
-    }
-
-    public function getUpdatedBy(): ?string
-    {
-        return $this->updatedBy;
-    }
-
-    public function setCreatedFromUa(?string $createdFromUa): void
-    {
-        $this->createdFromUa = $createdFromUa;
-    }
-
-    public function getCreatedFromUa(): ?string
-    {
-        return $this->createdFromUa;
-    }
-
-    public function setUpdatedFromUa(?string $updatedFromUa): void
-    {
-        $this->updatedFromUa = $updatedFromUa;
-    }
-
-    public function getUpdatedFromUa(): ?string
-    {
-        return $this->updatedFromUa;
+        return $this->id;
     }
 
     public function getForm(): Form
@@ -381,6 +338,62 @@ class Record
         $this->lockVersion = $lockVersion;
 
         return $this;
+    }
+
+    public function getExtraData(): ?array
+    {
+        return $this->extraData;
+    }
+
+    public function setExtraData(?array $extraData): self
+    {
+        $this->extraData = $extraData;
+
+        return $this;
+    }
+
+    public function setCreatedBy(?string $createdBy): self
+    {
+        $this->createdBy = $createdBy;
+
+        return $this;
+    }
+
+    public function getCreatedBy(): ?string
+    {
+        return $this->createdBy;
+    }
+
+    public function setUpdatedBy(?string $updatedBy): self
+    {
+        $this->updatedBy = $updatedBy;
+
+        return $this;
+    }
+
+    public function getUpdatedBy(): ?string
+    {
+        return $this->updatedBy;
+    }
+
+    public function setCreatedFromUa(?string $createdFromUa): void
+    {
+        $this->createdFromUa = $createdFromUa;
+    }
+
+    public function getCreatedFromUa(): ?string
+    {
+        return $this->createdFromUa;
+    }
+
+    public function setUpdatedFromUa(?string $updatedFromUa): void
+    {
+        $this->updatedFromUa = $updatedFromUa;
+    }
+
+    public function getUpdatedFromUa(): ?string
+    {
+        return $this->updatedFromUa;
     }
 
     public function getCreateTime(): ?\DateTimeInterface

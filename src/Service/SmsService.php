@@ -2,8 +2,8 @@
 
 namespace DiyFormBundle\Service;
 
-use AppBundle\Enum\SmsReceiveEnum;
 use DiyFormBundle\Entity\SendLog;
+use DiyFormBundle\Enum\SmsReceiveEnum;
 use DiyFormBundle\Repository\SmsDsnRepository;
 use Psr\Container\ContainerInterface;
 use Symfony\Component\Notifier\Message\SentMessage;

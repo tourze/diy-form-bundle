@@ -2,14 +2,9 @@
 
 namespace DiyFormBundle\Entity;
 
-use AntdCpBundle\Builder\Action\ModalFormAction;
-use AntdCpBundle\Builder\Field\InputTextField;
-use AntdCpBundle\Builder\Field\LongTextField;
-use AppBundle\Notifier\Message\SmsTemplateMessage;
 use DiyFormBundle\Repository\SmsDsnRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
-use Psr\Container\ContainerInterface;
 use Tourze\DoctrineIndexedBundle\Attribute\IndexColumn;
 use Tourze\DoctrineSnowflakeBundle\Service\SnowflakeIdGenerator;
 use Tourze\DoctrineTimestampBundle\Attribute\CreateTimeColumn;
@@ -21,7 +16,6 @@ use Tourze\EasyAdmin\Attribute\Action\BatchDeletable;
 use Tourze\EasyAdmin\Attribute\Action\Creatable;
 use Tourze\EasyAdmin\Attribute\Action\Deletable;
 use Tourze\EasyAdmin\Attribute\Action\Editable;
-use Tourze\EasyAdmin\Attribute\Action\ListAction;
 use Tourze\EasyAdmin\Attribute\Column\BoolColumn;
 use Tourze\EasyAdmin\Attribute\Column\ExportColumn;
 use Tourze\EasyAdmin\Attribute\Column\ListColumn;
@@ -191,45 +185,5 @@ class SmsDsn
         $this->weight = $weight;
 
         return $this;
-    }
-
-    #[ListAction(title: '测试模板消息')]
-    public function genSendTemplateBtn(): ModalFormAction
-    {
-        return ModalFormAction::gen()
-            ->setFormTitle('测试模板消息')
-            ->setLabel('测试模板消息')
-            ->setFormFields([
-                InputTextField::gen()->setId('phoneNumber')->setLabel('手机号码'),
-                InputTextField::gen()->setId('signName')->setLabel('签名'),
-                InputTextField::gen()->setId('templateCode')->setLabel('模板'),
-                LongTextField::gen()
-                    ->setId('templateParam')
-                    ->setLabel('模板参数')
-                    ->setInputProps([
-                        'placeholder' => '拼接成URL参数形式，如code=1&xx=2',
-                    ]),
-            ])
-            ->setCallback(function (
-                array $form,
-                array $record,
-                ContainerInterface $container,
-            ) {
-                $sms = new SmsTemplateMessage(
-                    $form['phoneNumber'],
-                    $form['phoneNumber'],
-                );
-
-                $sms->setTemplateCode($form['templateCode']);
-                $sms->setSignName($form['signName']);
-                parse_str((string) $form['templateParam'], $templateParams);
-                $sms->setTemplateParam($templateParams);
-
-                $container->get('texter.transport_factory')->fromString($this->getDsn())->send($sms);
-
-                return [
-                    '__message' => '发送成功',
-                ];
-            });
     }
 }
