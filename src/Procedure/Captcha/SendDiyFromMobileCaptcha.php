@@ -2,9 +2,9 @@
 
 namespace DiyFormBundle\Procedure\Captcha;
 
-use AppBundle\Notifier\Message\SmsTemplateMessage;
 use Carbon\Carbon;
 use DiyFormBundle\Event\SendMobileCaptchaEvent;
+use DiyFormBundle\Notifier\Message\SmsTemplateMessage;
 use DiyFormBundle\Repository\FormRepository;
 use DiyFormBundle\Service\PhoneNumberService;
 use DiyFormBundle\Service\SmsService;
@@ -77,7 +77,7 @@ class SendDiyFromMobileCaptcha extends LockableProcedure
 
             $sms = new SmsTemplateMessage(
                 $this->phoneNumber,
-                $this->textFormatter->formatText('您的登录验证码是：{{ code }}', $params),
+                $this->textFormatter->formatText('您的验证码是：{{ code }}', $params),
             );
             $templateParams = [
                 'code' => $code,
