@@ -12,12 +12,12 @@ use Psr\Container\ContainerInterface;
 use Symfony\Component\Notifier\Message\SentMessage;
 use Symfony\Component\Notifier\Message\SmsMessage;
 use Symfony\Component\Notifier\Transport\TransportInterface;
-use Tourze\DoctrineAsyncInsertBundle\Service\AsyncInsertService;
+use Tourze\DoctrineAsyncInsertBundle\Service\AsyncInsertService as DoctrineService;
 
 class SmsServiceTest extends TestCase
 {
     private SmsDsnRepository $dsnRepository;
-    private AsyncInsertService $doctrineService;
+    private DoctrineService $doctrineService;
     private ContainerInterface $container;
     private SmsService $smsService;
     private TransportInterface $transport;
@@ -25,7 +25,7 @@ class SmsServiceTest extends TestCase
     protected function setUp(): void
     {
         $this->dsnRepository = $this->createMock(SmsDsnRepository::class);
-        $this->doctrineService = $this->createMock(AsyncInsertService::class);
+        $this->doctrineService = $this->createMock(DoctrineService::class);
         $this->container = $this->createMock(ContainerInterface::class);
         $this->transport = $this->createMock(TransportInterface::class);
         
