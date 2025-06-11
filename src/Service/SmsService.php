@@ -10,7 +10,7 @@ use Symfony\Component\Notifier\Message\SentMessage;
 use Symfony\Component\Notifier\Message\SmsMessage;
 use Symfony\Component\Notifier\Transport\TransportInterface;
 use Symfony\Component\Uid\Uuid;
-use Tourze\DoctrineAsyncBundle\Service\DoctrineService;
+use Tourze\DoctrineAsyncInsertBundle\Service\AsyncInsertService;
 
 /**
  * @see https://symfony.com/doc/current/notifier.html#notifier-sms-channel
@@ -19,7 +19,7 @@ class SmsService
 {
     public function __construct(
         private readonly SmsDsnRepository $dsnRepository,
-        private readonly DoctrineService $doctrineService,
+        private readonly AsyncInsertService $doctrineService,
         private readonly ContainerInterface $container,
     ) {
     }
