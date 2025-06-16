@@ -230,7 +230,38 @@ class FieldTest extends TestCase
 
     public function testRemoveOption_移除选项并解除双向关系()
     {
-        $this->markTestSkipped('因为 PHPUnit 10 不支持 at() 方法，该测试已跳过');
+        $option = $this->createMock(Option::class);
+        
+        // 记录setField调用的参数
+        $callCount = 0;
+        $option->expects($this->exactly(2))
+            ->method('setField')
+            ->willReturnCallback(function($arg) use (&$callCount, $option) {
+                if ($callCount === 0) {
+                    // 第一次调用，添加时
+                    $this->assertSame($this->field, $arg);
+                } else {
+                    // 第二次调用，移除时
+                    $this->assertNull($arg);
+                }
+                $callCount++;
+                return $option;
+            });
+        
+        // 模拟选项的getField方法返回当前field
+        $option->expects($this->any())
+            ->method('getField')
+            ->willReturn($this->field);
+        
+        // 先添加选项
+        $this->field->addOption($option);
+        $this->assertTrue($this->field->getOptions()->contains($option));
+        
+        // 然后移除选项
+        $result = $this->field->removeOption($option);
+        
+        $this->assertSame($this->field, $result);
+        $this->assertFalse($this->field->getOptions()->contains($option));
     }
 
     public function testCreatedFromIp_可以设置和获取()
@@ -298,11 +329,167 @@ class FieldTest extends TestCase
 
     public function testRetrievePlainArray_返回正确的数组结构()
     {
-        $this->markTestSkipped('由于存在类型匹配问题，该测试已跳过');
+        // 设置字段属性
+        $this->field->setSn('F001');
+        $this->field->setType(FieldType::STRING);
+        $this->field->setRequired(true);
+        $this->field->setMaxInput(100);
+        $this->field->setTitle('测试字段');
+        $this->field->setPlaceholder('请输入内容');
+        $this->field->setBgImage('/images/bg.jpg');
+        $this->field->setDescription('这是一个测试字段');
+        $this->field->setValid(true);
+        $this->field->setExtra('{"custom":"value"}');
+        
+        // 设置ID（使用反射）
+        $reflectionClass = new \ReflectionClass(Field::class);
+        $property = $reflectionClass->getProperty('id');
+        $property->setAccessible(true);
+        $property->setValue($this->field, 123);
+        
+        // 创建一个模拟的选项
+        $option = $this->createMock(Option::class);
+        $option->expects($this->once())
+            ->method('retrievePlainArray')
+            ->willReturn([
+                'id' => 1,
+                'title' => '选项1',
+                'value' => 'opt1'
+            ]);
+        $option->expects($this->once())
+            ->method('setField')
+            ->willReturn($option);
+        
+        $this->field->addOption($option);
+        
+        // 获取结果
+        $result = $this->field->retrievePlainArray();
+        
+        // 验证数组结构
+        $this->assertIsArray($result);
+        $this->assertArrayHasKey('sn', $result);
+        $this->assertArrayHasKey('type', $result);
+        $this->assertArrayHasKey('required', $result);
+        $this->assertArrayHasKey('maxInput', $result);
+        $this->assertArrayHasKey('title', $result);
+        $this->assertArrayHasKey('placeholder', $result);
+        $this->assertArrayHasKey('bgImage', $result);
+        $this->assertArrayHasKey('options', $result);
+        $this->assertArrayHasKey('description', $result);
+        $this->assertArrayHasKey('id', $result);
+        $this->assertArrayHasKey('createTime', $result);
+        $this->assertArrayHasKey('updateTime', $result);
+        $this->assertArrayHasKey('valid', $result);
+        $this->assertArrayHasKey('extraConfig', $result);
+        $this->assertArrayHasKey('extra', $result);
+        
+        // 验证值
+        $this->assertEquals('F001', $result['sn']);
+        $this->assertEquals(FieldType::STRING, $result['type']);
+        $this->assertTrue($result['required']);
+        $this->assertEquals(100, $result['maxInput']);
+        $this->assertEquals('测试字段', $result['title']);
+        $this->assertEquals('请输入内容', $result['placeholder']);
+        $this->assertEquals('/images/bg.jpg', $result['bgImage']);
+        $this->assertEquals('这是一个测试字段', $result['description']);
+        $this->assertEquals(123, $result['id']);
+        $this->assertTrue($result['valid']);
+        $this->assertEquals('{"custom":"value"}', $result['extra']);
+        $this->assertEquals(['custom' => 'value'], $result['extraConfig']);
+        
+        // 验证选项数组
+        $this->assertCount(1, $result['options']);
+        $this->assertEquals('选项1', $result['options'][0]['title']);
     }
 
     public function testRetrieveApiArray_返回正确的API数组结构()
     {
-        $this->markTestSkipped('由于存在类型匹配问题，该测试已跳过');
+        // 设置字段属性
+        $this->field->setSn('F001');
+        $this->field->setType(FieldType::SINGLE_SELECT);
+        $this->field->setRequired(false);
+        $this->field->setMaxInput(1);
+        $this->field->setTitle('选择字段');
+        $this->field->setPlaceholder('请选择');
+        $this->field->setBgImage('/images/select-bg.jpg');
+        $this->field->setDescription('这是一个选择字段');
+        $this->field->setValid(true);
+        $this->field->setExtra('{"multiple":false}');
+        
+        // 设置ID（使用反射）
+        $reflectionClass = new \ReflectionClass(Field::class);
+        $property = $reflectionClass->getProperty('id');
+        $property->setAccessible(true);
+        $property->setValue($this->field, 456);
+        
+        // 创建两个模拟的选项
+        $option1 = $this->createMock(Option::class);
+        $option1->expects($this->once())
+            ->method('retrieveApiArray')
+            ->willReturn([
+                'id' => 1,
+                'title' => 'API选项1',
+                'value' => 'api_opt1'
+            ]);
+        $option1->expects($this->once())
+            ->method('setField')
+            ->willReturn($option1);
+        
+        $option2 = $this->createMock(Option::class);
+        $option2->expects($this->once())
+            ->method('retrieveApiArray')
+            ->willReturn([
+                'id' => 2,
+                'title' => 'API选项2',
+                'value' => 'api_opt2'
+            ]);
+        $option2->expects($this->once())
+            ->method('setField')
+            ->willReturn($option2);
+        
+        $this->field->addOption($option1);
+        $this->field->addOption($option2);
+        
+        // 获取结果
+        $result = $this->field->retrieveApiArray();
+        
+        // 验证数组结构（API数组应该与Plain数组有相同的结构）
+        $this->assertIsArray($result);
+        $this->assertArrayHasKey('sn', $result);
+        $this->assertArrayHasKey('type', $result);
+        $this->assertArrayHasKey('required', $result);
+        $this->assertArrayHasKey('maxInput', $result);
+        $this->assertArrayHasKey('title', $result);
+        $this->assertArrayHasKey('placeholder', $result);
+        $this->assertArrayHasKey('bgImage', $result);
+        $this->assertArrayHasKey('options', $result);
+        $this->assertArrayHasKey('description', $result);
+        $this->assertArrayHasKey('id', $result);
+        $this->assertArrayHasKey('createTime', $result);
+        $this->assertArrayHasKey('updateTime', $result);
+        $this->assertArrayHasKey('valid', $result);
+        $this->assertArrayHasKey('extraConfig', $result);
+        $this->assertArrayHasKey('extra', $result);
+        
+        // 验证值
+        $this->assertEquals('F001', $result['sn']);
+        $this->assertEquals(FieldType::SINGLE_SELECT, $result['type']);
+        $this->assertFalse($result['required']);
+        $this->assertEquals(1, $result['maxInput']);
+        $this->assertEquals('选择字段', $result['title']);
+        $this->assertEquals('请选择', $result['placeholder']);
+        $this->assertEquals('/images/select-bg.jpg', $result['bgImage']);
+        $this->assertEquals('这是一个选择字段', $result['description']);
+        $this->assertEquals(456, $result['id']);
+        $this->assertTrue($result['valid']);
+        $this->assertEquals('{"multiple":false}', $result['extra']);
+        $this->assertEquals(['multiple' => false], $result['extraConfig']);
+        
+        // 验证选项数组
+        $this->assertCount(2, $result['options']);
+        $this->assertEquals('API选项1', $result['options'][0]['title']);
+        $this->assertEquals('api_opt1', $result['options'][0]['value']);
+        $this->assertEquals('API选项2', $result['options'][1]['title']);
+        $this->assertEquals('api_opt2', $result['options'][1]['value']);
     }
 } 

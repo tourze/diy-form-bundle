@@ -228,36 +228,147 @@ class RecordTest extends TestCase
 
     public function testGetDataList_返回有效的数据列表()
     {
-        // 这个方法需要更复杂的模拟设置，暂时标记为跳过
-        $this->markTestSkipped('这个测试需要更复杂的设置，暂时跳过');
+        // 准备模拟数据
+        $field1 = $this->createMock(Field::class);
+        $field1->expects($this->any())
+              ->method('isValid')
+              ->willReturn(true);
+        $field1->expects($this->any())
+              ->method('getSn')
+              ->willReturn('field-sn-1');
+        
+        $field2 = $this->createMock(Field::class);
+        $field2->expects($this->any())
+              ->method('isValid')
+              ->willReturn(false); // 无效字段，不应包含在结果中
+        
+        $field3 = $this->createMock(Field::class);
+        $field3->expects($this->any())
+              ->method('isValid')
+              ->willReturn(true);
+        $field3->expects($this->any())
+              ->method('getSn')
+              ->willReturn('field-sn-3');
+        
+        $data1 = $this->createMock(Data::class);
+        $data1->expects($this->any())
+              ->method('getField')
+              ->willReturn($field1);
+        
+        $data2 = $this->createMock(Data::class);
+        $data2->expects($this->any())
+              ->method('getField')
+              ->willReturn($field2);
+        
+        $data3 = $this->createMock(Data::class);
+        $data3->expects($this->any())
+              ->method('getField')
+              ->willReturn($field3);
+        
+        $data4 = $this->createMock(Data::class);
+        $data4->expects($this->any())
+              ->method('getField')
+              ->willReturn(null); // 没有字段的数据，不应包含在结果中
+        
+        // 添加数据到record
+        $this->record->addData($data1);
+        $this->record->addData($data2);
+        $this->record->addData($data3);
+        $this->record->addData($data4);
+        
+        // 测试方法
+        $result = $this->record->getDataList();
+        
+        // 验证结果
+        $this->assertCount(2, $result); // 只有2个有效的数据
+        $this->assertArrayHasKey('field-sn-1', $result);
+        $this->assertArrayHasKey('field-sn-3', $result);
+        $this->assertSame($data1, $result['field-sn-1']);
+        $this->assertSame($data3, $result['field-sn-3']);
     }
 
     public function testCheckHasAnswered_返回是否已回答()
     {
-        // 这个方法需要更复杂的模拟设置，暂时标记为跳过
-        $this->markTestSkipped('这个测试需要更复杂的设置，暂时跳过');
+        // 准备模拟数据
+        $field1 = $this->createMock(Field::class);
+        $field1->expects($this->any())
+              ->method('getId')
+              ->willReturn(1);
+        
+        $field2 = $this->createMock(Field::class);
+        $field2->expects($this->any())
+              ->method('getId')
+              ->willReturn(2);
+        
+        $field3 = $this->createMock(Field::class);
+        $field3->expects($this->any())
+              ->method('getId')
+              ->willReturn(3);
+        
+        $data1 = $this->createMock(Data::class);
+        $data1->expects($this->any())
+              ->method('getField')
+              ->willReturn($field1);
+        
+        $data2 = $this->createMock(Data::class);
+        $data2->expects($this->any())
+              ->method('getField')
+              ->willReturn($field2);
+        
+        // 添加数据到record
+        $this->record->addData($data1);
+        $this->record->addData($data2);
+        
+        // 测试已回答的字段
+        $this->assertTrue($this->record->checkHasAnswered($field1));
+        $this->assertTrue($this->record->checkHasAnswered($field2));
+        
+        // 测试未回答的字段
+        $this->assertFalse($this->record->checkHasAnswered($field3));
     }
 
     public function testObtainDataBySN_根据SN获取Data()
     {
         // 准备模拟数据
-        $data1 = $this->createMock(Data::class);
         $field1 = $this->createMock(Field::class);
-        
-        // 设置field1的sn
-        $field1->expects($this->atLeastOnce())
+        $field1->expects($this->any())
               ->method('getSn')
               ->willReturn('field-sn-1');
         
-        // 设置data1的field
-        $data1->expects($this->atLeastOnce())
+        $field2 = $this->createMock(Field::class);
+        $field2->expects($this->any())
+              ->method('getSn')
+              ->willReturn('field-sn-2');
+        
+        $data1 = $this->createMock(Data::class);
+        $data1->expects($this->any())
               ->method('getField')
               ->willReturn($field1);
         
+        $data2 = $this->createMock(Data::class);
+        $data2->expects($this->any())
+              ->method('getField')
+              ->willReturn($field2);
+        
+        $data3 = $this->createMock(Data::class);
+        $data3->expects($this->any())
+              ->method('getField')
+              ->willReturn(null); // 没有字段的数据
+        
         // 添加数据到record
         $this->record->addData($data1);
+        $this->record->addData($data2);
+        $this->record->addData($data3);
         
-        // 测试方法
-        $this->markTestSkipped('obtainDataBySN方法测试暂时跳过，因为需要更多的mock设置');
+        // 测试找到的情况
+        $result1 = $this->record->obtainDataBySN('field-sn-1');
+        $this->assertSame($data1, $result1);
+        
+        $result2 = $this->record->obtainDataBySN('field-sn-2');
+        $this->assertSame($data2, $result2);
+        
+        // 测试找不到的情况
+        $result3 = $this->record->obtainDataBySN('field-sn-not-exist');
+        $this->assertNull($result3);
     }
 } 
