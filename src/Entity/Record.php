@@ -16,6 +16,7 @@ use Tourze\DoctrineIpBundle\Attribute\CreateIpColumn;
 use Tourze\DoctrineIpBundle\Attribute\UpdateIpColumn;
 use Tourze\DoctrineTimestampBundle\Attribute\CreateTimeColumn;
 use Tourze\DoctrineTimestampBundle\Attribute\UpdateTimeColumn;
+use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
 use Tourze\DoctrineUserAgentBundle\Attribute\CreateUserAgentColumn;
 use Tourze\DoctrineUserAgentBundle\Attribute\UpdateUserAgentColumn;
 use Tourze\DoctrineUserBundle\Attribute\CreatedByColumn;
@@ -34,6 +35,7 @@ use Tourze\EasyAdmin\Attribute\Permission\AsPermission;
 #[ORM\Table(name: 'diy_form_record', options: ['comment' => '提交记录'])]
 class Record
 {
+    use TimestampableAware;
     #[ListColumn(order: -1)]
     #[ExportColumn]
     #[ORM\Id]
@@ -117,16 +119,10 @@ class Record
     #[ListColumn(order: 99, sorter: true)]
     #[CreateTimeColumn]
     #[Groups(['restful_read', 'admin_curd'])]
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true, options: ['comment' => '创建时间'])]
-    private ?\DateTimeInterface $createTime = null;
-
-    #[UpdateTimeColumn]
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true, options: ['comment' => '创建时间'])]#[UpdateTimeColumn]
     #[Groups(['admin_curd'])]
     #[ExportColumn]
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true, options: ['comment' => '更新时间'])]
-    private ?\DateTimeInterface $updateTime = null;
-
-    #[CreateIpColumn]
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true, options: ['comment' => '更新时间'])]#[CreateIpColumn]
     #[ORM\Column(type: Types::STRING, length: 128, nullable: true, options: ['comment' => '创建者IP'])]
     private ?string $createdFromIp = null;
 
@@ -394,29 +390,7 @@ class Record
     public function getUpdatedFromUa(): ?string
     {
         return $this->updatedFromUa;
-    }
-
-    public function getCreateTime(): ?\DateTimeInterface
-    {
-        return $this->createTime;
-    }
-
-    public function setCreateTime(?\DateTimeInterface $createTime): void
-    {
-        $this->createTime = $createTime;
-    }
-
-    public function getUpdateTime(): ?\DateTimeInterface
-    {
-        return $this->updateTime;
-    }
-
-    public function setUpdateTime(?\DateTimeInterface $updateTime): void
-    {
-        $this->updateTime = $updateTime;
-    }
-
-    public function getCreatedFromIp(): ?string
+    }public function getCreatedFromIp(): ?string
     {
         return $this->createdFromIp;
     }
