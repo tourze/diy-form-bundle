@@ -21,32 +21,17 @@ use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
 use Tourze\DoctrineTrackBundle\Attribute\TrackColumn;
 use Tourze\DoctrineUserBundle\Attribute\CreatedByColumn;
 use Tourze\DoctrineUserBundle\Attribute\UpdatedByColumn;
-use Tourze\EasyAdmin\Attribute\Action\Creatable;
 use Tourze\EasyAdmin\Attribute\Action\CurdAction;
-use Tourze\EasyAdmin\Attribute\Action\Deletable;
-use Tourze\EasyAdmin\Attribute\Action\Editable;
-use Tourze\EasyAdmin\Attribute\Column\BoolColumn;
-use Tourze\EasyAdmin\Attribute\Column\ExportColumn;
-use Tourze\EasyAdmin\Attribute\Column\ListColumn;
 use Tourze\EasyAdmin\Attribute\Event\BeforeCreate;
 use Tourze\EasyAdmin\Attribute\Event\BeforeEdit;
-use Tourze\EasyAdmin\Attribute\Field\FormField;
 use Tourze\EasyAdmin\Attribute\Field\RichTextField;
-use Tourze\EasyAdmin\Attribute\Filter\Filterable;
-use Tourze\EasyAdmin\Attribute\Permission\AsPermission;
 use Tourze\JsonRPC\Core\Exception\ApiException;
 use Yiisoft\Arrays\ArraySorter;
 
-#[AsPermission(title: '表单配置', titleOverrideEnv: 'PAGE_TITLE_DIY_FORM')]
-#[Deletable]
-#[Editable]
-#[Creatable]
 #[ORM\Entity(repositoryClass: FormRepository::class)]
 #[ORM\Table(name: 'diy_form_config', options: ['comment' => '表单配置'])]
 class Form implements PlainArrayInterface, ApiArrayInterface, \Stringable
 {
-    #[ListColumn(order: -1)]
-    #[ExportColumn]
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: Types::INTEGER, options: ['comment' => 'ID'])]
@@ -62,8 +47,6 @@ class Form implements PlainArrayInterface, ApiArrayInterface, \Stringable
      * order值大的排序靠前。有效的值范围是[0, 2^32].
      */
     #[IndexColumn]
-    #[FormField]
-    #[ListColumn(order: 95, sorter: true)]
     #[ORM\Column(type: Types::INTEGER, nullable: true, options: ['default' => '0', 'comment' => '次序值'])]
     private ?int $sortNumber = 0;
 
@@ -94,25 +77,18 @@ class Form implements PlainArrayInterface, ApiArrayInterface, \Stringable
     #[ORM\Column(nullable: true, options: ['comment' => '更新人'])]
     private ?string $updatedBy = null;
 
-    #[BoolColumn]
     #[IndexColumn]
     #[TrackColumn]
     #[ORM\Column(type: Types::BOOLEAN, nullable: true, options: ['comment' => '有效', 'default' => 0])]
-    #[ListColumn(order: 97)]
-    #[FormField(order: 97)]
     private ?bool $valid = false;
 
-    #[FormField]
-    #[Filterable]
     #[Groups(['restful_read'])]
-    #[ListColumn]
     #[ORM\Column(type: Types::STRING, length: 120, unique: true, options: ['comment' => '标题'])]
     private string $title;
 
     /**
      * @var Collection<Field>
      */
-    #[ListColumn(title: '字段/题目', width: 550)]
     #[CurdAction(label: '字段/题目', drawerWidth: '90%')]
     #[Ignore]
     #[ORM\OneToMany(mappedBy: 'form', targetEntity: Field::class, fetch: 'EXTRA_LAZY', orphanRemoval: true, indexBy: 'id')]
@@ -122,25 +98,19 @@ class Form implements PlainArrayInterface, ApiArrayInterface, \Stringable
      * @BraftEditor()
      */
     #[RichTextField]
-    #[FormField]
     #[Groups(['restful_read'])]
     #[ORM\Column(type: Types::TEXT, nullable: true, options: ['comment' => '描述'])]
     private ?string $description = null;
 
-    #[FormField]
     #[ORM\Column(type: Types::TEXT, nullable: true, options: ['comment' => '备注'])]
     private ?string $remark = null;
 
-    #[FormField(span: 9)]
     #[Groups(['restful_read'])]
-    #[ListColumn]
     #[ORM\Column(type: Types::DATETIME_MUTABLE, options: ['comment' => '开始时间'])]
     private ?\DateTimeInterface $startTime = null;
 
-    #[FormField(span: 9)]
     #[Assert\GreaterThan(propertyPath: 'startTime')]
     #[Groups(['restful_read'])]
-    #[ListColumn]
     #[ORM\Column(type: Types::DATETIME_MUTABLE, options: ['comment' => '结束时间'])]
     private ?\DateTimeInterface $endTime = null;
 

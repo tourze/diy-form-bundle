@@ -23,17 +23,10 @@ use Tourze\DoctrineUserBundle\Attribute\CreatedByColumn;
 use Tourze\DoctrineUserBundle\Attribute\UpdatedByColumn;
 use Tourze\EasyAdmin\Attribute\Action\BatchDeletable;
 use Tourze\EasyAdmin\Attribute\Action\Creatable;
-use Tourze\EasyAdmin\Attribute\Action\Deletable;
 use Tourze\EasyAdmin\Attribute\Action\Editable;
 use Tourze\EasyAdmin\Attribute\Action\Listable;
-use Tourze\EasyAdmin\Attribute\Column\BoolColumn;
-use Tourze\EasyAdmin\Attribute\Column\ExportColumn;
-use Tourze\EasyAdmin\Attribute\Column\ListColumn;
-use Tourze\EasyAdmin\Attribute\Field\FormField;
 use Tourze\EasyAdmin\Attribute\Field\ImagePickerField;
 use Tourze\EasyAdmin\Attribute\Field\RichTextField;
-use Tourze\EasyAdmin\Attribute\Filter\Keyword;
-use Tourze\EasyAdmin\Attribute\Permission\AsPermission;
 use Yiisoft\Json\Json;
 
 /**
@@ -41,8 +34,6 @@ use Yiisoft\Json\Json;
  *
  * @see https://symfony.com/doc/current/components/expression_language.html
  */
-#[AsPermission(title: '字段配置')]
-#[Deletable]
 #[Listable(sortColumn: ['sortNumber' => 'DESC', 'id' => 'ASC'])]
 #[Creatable(drawerWidth: 1380)]
 #[Editable(drawerWidth: 1380)]
@@ -52,8 +43,6 @@ use Yiisoft\Json\Json;
 #[ORM\UniqueConstraint(name: 'diy_form_field_idx_uniq', columns: ['form_id', 'sn'])]
 class Field implements \Stringable, PlainArrayInterface, ApiArrayInterface
 {
-    #[ListColumn(order: -1)]
-    #[ExportColumn]
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: Types::INTEGER, options: ['comment' => 'ID'])]
@@ -73,12 +62,9 @@ class Field implements \Stringable, PlainArrayInterface, ApiArrayInterface
     #[ORM\Column(nullable: true, options: ['comment' => '更新人'])]
     private ?string $updatedBy = null;
 
-    #[BoolColumn]
     #[IndexColumn]
     #[TrackColumn]
     #[ORM\Column(type: Types::BOOLEAN, nullable: true, options: ['comment' => '有效', 'default' => 0])]
-    #[ListColumn(order: 97)]
-    #[FormField(order: 97)]
     private ?bool $valid = false;
 
     #[Ignore]
@@ -91,51 +77,35 @@ class Field implements \Stringable, PlainArrayInterface, ApiArrayInterface
      * 前端生成的话，那么跳题配置就可以由前端去控制
      * TODO 前端生成的话，需要防止前端乱传东西，确保必须是一个随机字符串.
      */
-    #[FormField(span: 6)]
     #[Groups(['restful_read', 'admin_curd'])]
-    #[ListColumn]
-    #[Keyword]
     #[ORM\Column(type: Types::STRING, length: 120, options: ['comment' => '序列号'])]
     private ?string $sn = '';
 
-    #[FormField(span: 6)]
     #[Groups(['restful_read', 'admin_curd'])]
-    #[ListColumn]
     #[ORM\Column(type: Types::STRING, length: 100, enumType: FieldType::class, options: ['comment' => '类型'])]
     private ?FieldType $type = null;
 
-    #[FormField(span: 4)]
-    #[ListColumn(sorter: true)]
     #[Groups(['admin_curd'])]
     #[ORM\Column(type: Types::INTEGER, nullable: true, options: ['comment' => '排序', 'default' => 0])]
     private ?int $sortNumber = null;
 
-    #[FormField(span: 4)]
     #[Groups(['restful_read', 'admin_curd'])]
-    #[ListColumn]
     #[ORM\Column(type: Types::BOOLEAN, nullable: true, options: ['comment' => '必填'])]
     private ?bool $required = null;
 
-    #[FormField(span: 4)]
     #[Groups(['restful_read', 'admin_curd'])]
     #[ORM\Column(type: Types::INTEGER, nullable: true, options: ['comment' => '最大输入/选择'])]
     private ?int $maxInput = null;
 
-    #[FormField]
-    #[Keyword]
     #[Groups(['restful_read', 'admin_curd'])]
-    #[ListColumn(width: 300)]
     #[ORM\Column(type: Types::STRING, length: 255, options: ['comment' => '标题'])]
     private ?string $title = '';
 
-    #[FormField(span: 19)]
-    #[Keyword]
     #[Groups(['restful_read', 'admin_curd'])]
     #[ORM\Column(type: Types::STRING, length: 255, nullable: true, options: ['comment' => '提示文本'])]
     private ?string $placeholder = '';
 
     #[ImagePickerField]
-    #[FormField(span: 5)]
     #[Groups(['restful_read', 'admin_curd'])]
     #[ORM\Column(type: Types::STRING, length: 255, nullable: true, options: ['comment' => '背景图'])]
     private ?string $bgImage = null;
@@ -147,9 +117,7 @@ class Field implements \Stringable, PlainArrayInterface, ApiArrayInterface
      *
      * @var Collection<Option>
      */
-    #[FormField(title: '选项值')]
     #[Groups(['restful_read', 'admin_curd'])]
-    #[ListColumn(title: '选项值', width: 300)]
     #[ORM\OneToMany(mappedBy: 'field', targetEntity: Option::class, cascade: ['persist'], fetch: 'EXTRA_LAZY', orphanRemoval: true)]
     private Collection $options;
 
@@ -157,20 +125,15 @@ class Field implements \Stringable, PlainArrayInterface, ApiArrayInterface
      * @BraftEditor()
      */
     #[RichTextField]
-    #[FormField]
-    #[Keyword]
     #[Groups(['restful_read', 'admin_curd'])]
     #[ORM\Column(type: Types::TEXT, nullable: true, options: ['comment' => '描述'])]
     private ?string $description = null;
 
     #[Groups(['admin_curd'])]
-    #[FormField]
-    #[ListColumn(width: 160)]
     #[ORM\Column(type: Types::TEXT, nullable: true, options: ['comment' => '显示规则'])]
     private ?string $showExpression = null;
 
     #[Groups(['restful_read', 'admin_curd'])]
-    #[FormField]
     #[ORM\Column(type: Types::TEXT, nullable: true, options: ['comment' => '额外信息'])]
     private ?string $extra = null;
 

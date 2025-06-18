@@ -22,28 +22,19 @@ use Tourze\DoctrineUserAgentBundle\Attribute\UpdateUserAgentColumn;
 use Tourze\DoctrineUserBundle\Attribute\CreatedByColumn;
 use Tourze\DoctrineUserBundle\Attribute\UpdatedByColumn;
 use Tourze\EasyAdmin\Attribute\Action\BatchDeletable;
-use Tourze\EasyAdmin\Attribute\Action\Deletable;
-use Tourze\EasyAdmin\Attribute\Column\ExportColumn;
-use Tourze\EasyAdmin\Attribute\Column\ListColumn;
 use Tourze\EasyAdmin\Attribute\Filter\Filterable;
-use Tourze\EasyAdmin\Attribute\Permission\AsPermission;
 
-#[AsPermission(title: '提交记录')]
-#[Deletable]
 #[BatchDeletable]
 #[ORM\Entity(repositoryClass: RecordRepository::class)]
 #[ORM\Table(name: 'diy_form_record', options: ['comment' => '提交记录'])]
 class Record
 {
     use TimestampableAware;
-    #[ListColumn(order: -1)]
-    #[ExportColumn]
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: Types::INTEGER, options: ['comment' => 'ID'])]
     private ?int $id = 0;
 
-    #[ExportColumn]
     #[Groups(['restful_read'])]
     #[Ignore]
     #[ORM\ManyToOne(targetEntity: Form::class, inversedBy: 'records')]
@@ -53,13 +44,9 @@ class Record
     /**
      * @var Collection<Data>
      */
-    #[ListColumn(title: '表单数据', width: 150)]
-    #[ExportColumn]
     #[ORM\OneToMany(mappedBy: 'record', targetEntity: Data::class, orphanRemoval: true)]
     private Collection $datas;
 
-    #[ListColumn(title: '提交人')]
-    #[ExportColumn]
     #[ORM\ManyToOne(targetEntity: UserInterface::class)]
     #[ORM\JoinColumn(onDelete: 'SET NULL')]
     private ?UserInterface $user = null;
@@ -84,7 +71,6 @@ class Record
     private ?array $submitData = [];
 
     #[ORM\ManyToOne]
-    #[ExportColumn]
     #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
     private ?UserInterface $inviter = null;
 
@@ -116,12 +102,10 @@ class Record
      */
     #[IndexColumn]
     #[Filterable(label: '提交时间')]
-    #[ListColumn(order: 99, sorter: true)]
     #[CreateTimeColumn]
     #[Groups(['restful_read', 'admin_curd'])]
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true, options: ['comment' => '创建时间'])]#[UpdateTimeColumn]
     #[Groups(['admin_curd'])]
-    #[ExportColumn]
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true, options: ['comment' => '更新时间'])]#[CreateIpColumn]
     #[ORM\Column(type: Types::STRING, length: 128, nullable: true, options: ['comment' => '创建者IP'])]
     private ?string $createdFromIp = null;

@@ -18,27 +18,14 @@ use Tourze\DoctrineSnowflakeBundle\Service\SnowflakeIdGenerator;
 use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
 use Tourze\DoctrineUserBundle\Attribute\CreatedByColumn;
 use Tourze\DoctrineUserBundle\Attribute\UpdatedByColumn;
-use Tourze\EasyAdmin\Attribute\Action\Creatable;
-use Tourze\EasyAdmin\Attribute\Action\Deletable;
-use Tourze\EasyAdmin\Attribute\Action\Editable;
-use Tourze\EasyAdmin\Attribute\Column\ExportColumn;
-use Tourze\EasyAdmin\Attribute\Column\ListColumn;
-use Tourze\EasyAdmin\Attribute\Field\FormField;
 use Tourze\EasyAdmin\Attribute\Field\ImagePickerField;
-use Tourze\EasyAdmin\Attribute\Permission\AsPermission;
 
-#[AsPermission(title: '选项')]
-#[Deletable]
-#[Editable]
-#[Creatable]
 #[ORM\Entity(repositoryClass: OptionRepository::class)]
 #[ORM\Table(name: 'diy_form_option', options: ['comment' => '选项'])]
 class Option implements \Stringable, PlainArrayInterface, ApiArrayInterface
 {
     use TimestampableAware;
 
-    #[ExportColumn]
-    #[ListColumn(order: -1, sorter: true)]
     #[ORM\Id]
     #[ORM\GeneratedValue(strategy: 'CUSTOM')]
     #[ORM\CustomIdGenerator(SnowflakeIdGenerator::class)]
@@ -66,7 +53,6 @@ class Option implements \Stringable, PlainArrayInterface, ApiArrayInterface
     /**
      * @LongTextField()
      */
-    #[FormField(span: 4)]
     #[Groups(['restful_read', 'admin_curd'])]
     #[ORM\Column(type: Types::STRING, length: 1000, options: ['comment' => '选项文本'])]
     private ?string $text = null;
@@ -74,7 +60,6 @@ class Option implements \Stringable, PlainArrayInterface, ApiArrayInterface
     /**
      * @LongTextField()
      */
-    #[FormField(span: 3)]
     #[Groups(['restful_read', 'admin_curd'])]
     #[ORM\Column(type: Types::STRING, length: 1000, nullable: true, options: ['comment' => '说明文本'])]
     private ?string $description = '';
@@ -83,12 +68,10 @@ class Option implements \Stringable, PlainArrayInterface, ApiArrayInterface
      * @LongTextField()
      */
     #[Groups(['admin_curd'])]
-    #[FormField(span: 3)]
     #[ORM\Column(type: Types::STRING, length: 600, nullable: true, options: ['comment' => '标签'])]
     private ?string $tags = null;
 
     #[Groups(['admin_curd'])]
-    #[FormField(span: 3)]
     #[ORM\Column(type: Types::TEXT, nullable: true, options: ['comment' => '显示规则'])]
     private ?string $showExpression = null;
 
@@ -97,29 +80,24 @@ class Option implements \Stringable, PlainArrayInterface, ApiArrayInterface
      *
      * @LongTextField()
      */
-    #[FormField(span: 3)]
     #[Groups(['restful_read', 'admin_curd'])]
     #[ORM\Column(type: Types::STRING, length: 1000, nullable: true, options: ['comment' => '互斥分组'])]
     private ?string $mutex = null;
 
     #[Groups(['restful_read', 'admin_curd'])]
-    #[FormField(span: 2)]
     #[ORM\Column(type: Types::BOOLEAN, nullable: true, options: ['comment' => '自由输入'])]
     private ?bool $allowInput = false;
 
     #[Groups(['restful_read', 'admin_curd'])]
-    #[FormField(span: 2)]
     #[ORM\Column(type: Types::BOOLEAN, nullable: true, options: ['comment' => '正确答案'])]
     private ?bool $answer = false;
 
     #[ImagePickerField]
-    #[FormField(span: 3)]
     #[Groups(['restful_read', 'admin_curd'])]
     #[ORM\Column(type: Types::STRING, length: 255, nullable: true, options: ['comment' => 'ICON'])]
     private ?string $icon = null;
 
     #[ImagePickerField]
-    #[FormField(span: 3)]
     #[Groups(['restful_read', 'admin_curd'])]
     #[ORM\Column(type: Types::STRING, length: 255, nullable: true, options: ['comment' => '选中态ICON'])]
     private ?string $selectedIcon = null;

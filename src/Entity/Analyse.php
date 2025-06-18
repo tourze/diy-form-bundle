@@ -20,19 +20,10 @@ use Tourze\DoctrineUserBundle\Attribute\CreatedByColumn;
 use Tourze\DoctrineUserBundle\Attribute\UpdatedByColumn;
 use Tourze\EasyAdmin\Attribute\Action\BatchDeletable;
 use Tourze\EasyAdmin\Attribute\Action\Creatable;
-use Tourze\EasyAdmin\Attribute\Action\Deletable;
 use Tourze\EasyAdmin\Attribute\Action\Editable;
-use Tourze\EasyAdmin\Attribute\Column\BoolColumn;
-use Tourze\EasyAdmin\Attribute\Column\ExportColumn;
-use Tourze\EasyAdmin\Attribute\Column\ListColumn;
-use Tourze\EasyAdmin\Attribute\Field\FormField;
 use Tourze\EasyAdmin\Attribute\Field\ImagePickerField;
 use Tourze\EasyAdmin\Attribute\Field\RichTextField;
-use Tourze\EasyAdmin\Attribute\Filter\Filterable;
-use Tourze\EasyAdmin\Attribute\Permission\AsPermission;
 
-#[AsPermission(title: '分析规则')]
-#[Deletable]
 #[Creatable(drawerWidth: 1200)]
 #[Editable(drawerWidth: 1200)]
 #[BatchDeletable]
@@ -42,7 +33,6 @@ class Analyse implements \Stringable, ApiArrayInterface
 {
     use TimestampableAware;
 
-    #[FormField]
     #[ORM\Column(type: Types::TEXT, nullable: true, options: ['comment' => '备注', 'default' => ''])]
     private ?string $remark = null;
 
@@ -62,8 +52,6 @@ class Analyse implements \Stringable, ApiArrayInterface
      * order值大的排序靠前。有效的值范围是[0, 2^32].
      */
     #[IndexColumn]
-    #[FormField]
-    #[ListColumn(order: 95, sorter: true)]
     #[ORM\Column(type: Types::INTEGER, nullable: true, options: ['default' => '0', 'comment' => '次序值'])]
     private ?int $sortNumber = 0;
 
@@ -86,8 +74,6 @@ class Analyse implements \Stringable, ApiArrayInterface
         ];
     }
 
-    #[ExportColumn]
-    #[ListColumn(order: -1, sorter: true)]
     #[ORM\Id]
     #[ORM\GeneratedValue(strategy: 'CUSTOM')]
     #[ORM\CustomIdGenerator(SnowflakeIdGenerator::class)]
@@ -102,12 +88,9 @@ class Analyse implements \Stringable, ApiArrayInterface
     #[ORM\Column(nullable: true, options: ['comment' => '更新人'])]
     private ?string $updatedBy = null;
 
-    #[BoolColumn]
     #[IndexColumn]
     #[TrackColumn]
     #[ORM\Column(type: Types::BOOLEAN, nullable: true, options: ['comment' => '有效', 'default' => 0])]
-    #[ListColumn(order: 97)]
-    #[FormField(order: 97)]
     private ?bool $valid = false;
 
     #[Ignore]
@@ -115,26 +98,17 @@ class Analyse implements \Stringable, ApiArrayInterface
     #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
     private ?Form $form = null;
 
-    #[FormField(span: 10)]
-    #[Filterable]
     #[Groups('restful_read')]
-    #[ListColumn(width: 100)]
     #[ORM\Column(type: Types::STRING, length: 200, nullable: true, options: ['comment' => '分类', 'default' => '默认'])]
     private ?string $category = null;
 
-    #[FormField(span: 14)]
-    #[Filterable]
     #[Groups('restful_read')]
-    #[ListColumn(width: 140)]
     #[ORM\Column(type: Types::STRING, length: 200, options: ['comment' => '标题'])]
     private ?string $title = '';
 
     /**
      * @LongTextField()
      */
-    #[FormField]
-    #[Filterable]
-    #[ListColumn]
     #[ORM\Column(type: Types::STRING, length: 2000, options: ['comment' => '判断条件'])]
     private ?string $rule = '';
 
@@ -142,13 +116,11 @@ class Analyse implements \Stringable, ApiArrayInterface
      * @BraftEditor()
      */
     #[RichTextField]
-    #[FormField]
     #[Groups('restful_read')]
     #[ORM\Column(type: Types::TEXT, options: ['comment' => '结果'])]
     private ?string $result = '';
 
     #[ImagePickerField]
-    #[FormField]
     #[Groups('restful_read')]
     #[ORM\Column(type: Types::STRING, length: 255, nullable: true, options: ['comment' => '缩略图'])]
     private ?string $thumb = null;
