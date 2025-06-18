@@ -47,8 +47,6 @@ class FieldTypeTest extends TestCase
     public function testGenOptions_返回所有枚举项的描述数组()
     {
         $items = FieldType::genOptions();
-        
-        $this->assertIsArray($items);
         $this->assertGreaterThanOrEqual(count(FieldType::cases()), count($items));
         
         // 验证第一个选项的结构
@@ -62,8 +60,6 @@ class FieldTypeTest extends TestCase
     public function testToSelectItem_返回正确的选项数组()
     {
         $option = FieldType::STRING->toSelectItem();
-        
-        $this->assertIsArray($option);
         $this->assertEquals(FieldType::STRING->value, $option['value']);
         $this->assertEquals(FieldType::STRING->getLabel(), $option['label']);
         $this->assertEquals(FieldType::STRING->getLabel(), $option['text']);
@@ -73,8 +69,6 @@ class FieldTypeTest extends TestCase
     public function testCases_返回所有枚举值()
     {
         $cases = FieldType::cases();
-        
-        $this->assertIsArray($cases);
         $this->assertGreaterThanOrEqual(15, count($cases)); // 至少有15种类型
         
         $values = array_map(fn($case) => $case->value, $cases);

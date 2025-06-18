@@ -52,8 +52,6 @@ class FormTest extends TestCase
         $this->form->setSortNumber($sortNumber);
         
         $result = $this->form->retrieveSortableArray();
-        
-        $this->assertIsArray($result);
         $this->assertArrayHasKey('sortNumber', $result);
         $this->assertEquals($sortNumber, $result['sortNumber']);
     }
@@ -402,7 +400,6 @@ class FormTest extends TestCase
         $result = $this->form->retrievePlainArray();
         
         // 验证数组结构
-        $this->assertIsArray($result);
         $this->assertArrayHasKey('id', $result);
         $this->assertArrayHasKey('title', $result);
         $this->assertArrayHasKey('description', $result);
@@ -470,14 +467,12 @@ class FormTest extends TestCase
         $result = $this->form->retrieveApiArray();
         
         // 验证基本结构
-        $this->assertIsArray($result);
         $this->assertArrayHasKey('id', $result);
         $this->assertArrayHasKey('title', $result);
         $this->assertArrayHasKey('description', $result);
         $this->assertArrayHasKey('fields', $result);
         
         // 验证fields数组
-        $this->assertIsArray($result['fields']);
         $this->assertCount(2, $result['fields']);
         
         // 验证字段顺序（按sortNumber降序）

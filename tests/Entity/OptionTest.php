@@ -104,8 +104,6 @@ class OptionTest extends TestCase
         $this->option->setTags($tags);
         
         $tagList = $this->option->getTagList();
-        
-        $this->assertIsArray($tagList);
         $this->assertEquals(['tag1', 'tag2', 'tag3'], $tagList);
     }
 
@@ -267,8 +265,6 @@ class OptionTest extends TestCase
         $this->option->setSn('test-123');
         
         $array = $this->option->retrievePlainArray();
-        
-        $this->assertIsArray($array);
         $this->assertArrayHasKey('text', $array);
         $this->assertArrayHasKey('description', $array);
         $this->assertArrayHasKey('tags', $array);
@@ -288,8 +284,6 @@ class OptionTest extends TestCase
         $this->option->setAnswer(true);
         
         $array = $this->option->retrieveApiArray();
-        
-        $this->assertIsArray($array);
         $this->assertArrayHasKey('text', $array);
         $this->assertArrayHasKey('description', $array);
         $this->assertArrayHasKey('sn', $array);

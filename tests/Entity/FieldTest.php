@@ -181,8 +181,6 @@ class FieldTest extends TestCase
         $this->field->setExtra($extraJson);
         
         $result = $this->field->getExtraConfig();
-        
-        $this->assertIsArray($result);
         $this->assertEquals($extraData, $result);
     }
 
@@ -191,8 +189,6 @@ class FieldTest extends TestCase
         $this->field->setExtra(null);
         
         $result = $this->field->getExtraConfig();
-        
-        $this->assertIsArray($result);
         $this->assertEmpty($result);
     }
 
@@ -201,8 +197,6 @@ class FieldTest extends TestCase
         $this->field->setExtra('invalid json');
         
         $result = $this->field->getExtraConfig();
-        
-        $this->assertIsArray($result);
         $this->assertEmpty($result);
     }
 
@@ -366,7 +360,6 @@ class FieldTest extends TestCase
         $result = $this->field->retrievePlainArray();
         
         // 验证数组结构
-        $this->assertIsArray($result);
         $this->assertArrayHasKey('sn', $result);
         $this->assertArrayHasKey('type', $result);
         $this->assertArrayHasKey('required', $result);
@@ -454,7 +447,6 @@ class FieldTest extends TestCase
         $result = $this->field->retrieveApiArray();
         
         // 验证数组结构（API数组应该与Plain数组有相同的结构）
-        $this->assertIsArray($result);
         $this->assertArrayHasKey('sn', $result);
         $this->assertArrayHasKey('type', $result);
         $this->assertArrayHasKey('required', $result);
