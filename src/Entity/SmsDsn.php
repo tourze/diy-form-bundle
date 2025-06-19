@@ -11,9 +11,7 @@ use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
 use Tourze\DoctrineTrackBundle\Attribute\TrackColumn;
 use Tourze\DoctrineUserBundle\Attribute\CreatedByColumn;
 use Tourze\DoctrineUserBundle\Attribute\UpdatedByColumn;
-use Tourze\EasyAdmin\Attribute\Action\BatchDeletable;
 
-#[BatchDeletable]
 #[ORM\Entity(repositoryClass: SmsDsnRepository::class)]
 #[ORM\Table(name: 'sms_dsn', options: ['comment' => 'SMS配置'])]
 class SmsDsn

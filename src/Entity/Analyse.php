@@ -18,7 +18,6 @@ use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
 use Tourze\DoctrineTrackBundle\Attribute\TrackColumn;
 use Tourze\DoctrineUserBundle\Attribute\CreatedByColumn;
 use Tourze\DoctrineUserBundle\Attribute\UpdatedByColumn;
-use Tourze\EasyAdmin\Attribute\Action\BatchDeletable;
 use Tourze\EasyAdmin\Attribute\Action\Creatable;
 use Tourze\EasyAdmin\Attribute\Action\Editable;
 use Tourze\EasyAdmin\Attribute\Field\ImagePickerField;
@@ -26,7 +25,6 @@ use Tourze\EasyAdmin\Attribute\Field\RichTextField;
 
 #[Creatable(drawerWidth: 1200)]
 #[Editable(drawerWidth: 1200)]
-#[BatchDeletable]
 #[ORM\Entity(repositoryClass: AnalyseRepository::class)]
 #[ORM\Table(name: 'diy_form_analyse', options: ['comment' => '分析规则'])]
 class Analyse implements \Stringable, ApiArrayInterface

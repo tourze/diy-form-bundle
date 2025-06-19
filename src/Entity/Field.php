@@ -21,7 +21,6 @@ use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
 use Tourze\DoctrineTrackBundle\Attribute\TrackColumn;
 use Tourze\DoctrineUserBundle\Attribute\CreatedByColumn;
 use Tourze\DoctrineUserBundle\Attribute\UpdatedByColumn;
-use Tourze\EasyAdmin\Attribute\Action\BatchDeletable;
 use Tourze\EasyAdmin\Attribute\Action\Creatable;
 use Tourze\EasyAdmin\Attribute\Action\Editable;
 use Tourze\EasyAdmin\Attribute\Action\Listable;
@@ -37,7 +36,6 @@ use Yiisoft\Json\Json;
 #[Listable(sortColumn: ['sortNumber' => 'DESC', 'id' => 'ASC'])]
 #[Creatable(drawerWidth: 1380)]
 #[Editable(drawerWidth: 1380)]
-#[BatchDeletable]
 #[ORM\Entity(repositoryClass: FieldRepository::class)]
 #[ORM\Table(name: 'diy_form_field', options: ['comment' => '字段配置'])]
 #[ORM\UniqueConstraint(name: 'diy_form_field_idx_uniq', columns: ['form_id', 'sn'])]

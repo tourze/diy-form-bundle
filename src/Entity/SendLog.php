@@ -9,9 +9,7 @@ use Doctrine\ORM\Mapping as ORM;
 use Tourze\DoctrineIndexedBundle\Attribute\IndexColumn;
 use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
 use Tourze\DoctrineUserBundle\Attribute\CreatedByColumn;
-use Tourze\EasyAdmin\Attribute\Action\BatchDeletable;
 
-#[BatchDeletable]
 #[ORM\Entity(repositoryClass: SendLogRepository::class)]
 #[ORM\Table(name: 'ims_sms_receive_log', options: ['comment' => 'SMS日志'])]
 class SendLog
