@@ -26,14 +26,14 @@ class FieldTest extends TestCase
 
     public function testCreateTime_可以设置和获取()
     {
-        $now = new \DateTime();
+        $now = new \DateTimeImmutable();
         $this->field->setCreateTime($now);
         $this->assertSame($now, $this->field->getCreateTime());
     }
 
     public function testUpdateTime_可以设置和获取()
     {
-        $now = new \DateTime();
+        $now = new \DateTimeImmutable();
         $this->field->setUpdateTime($now);
         $this->assertSame($now, $this->field->getUpdateTime());
     }
@@ -42,7 +42,7 @@ class FieldTest extends TestCase
     {
         $createdBy = 'test-user';
         $result = $this->field->setCreatedBy($createdBy);
-        
+
         $this->assertSame($this->field, $result);
         $this->assertEquals($createdBy, $this->field->getCreatedBy());
     }
@@ -51,7 +51,7 @@ class FieldTest extends TestCase
     {
         $updatedBy = 'test-user';
         $result = $this->field->setUpdatedBy($updatedBy);
-        
+
         $this->assertSame($this->field, $result);
         $this->assertEquals($updatedBy, $this->field->getUpdatedBy());
     }
@@ -59,9 +59,9 @@ class FieldTest extends TestCase
     public function testValid_可以设置和获取()
     {
         $this->assertFalse($this->field->isValid());
-        
+
         $result = $this->field->setValid(true);
-        
+
         $this->assertSame($this->field, $result);
         $this->assertTrue($this->field->isValid());
     }
@@ -70,7 +70,7 @@ class FieldTest extends TestCase
     {
         $form = new Form();
         $result = $this->field->setForm($form);
-        
+
         $this->assertSame($this->field, $result);
         $this->assertSame($form, $this->field->getForm());
     }
@@ -79,7 +79,7 @@ class FieldTest extends TestCase
     {
         $sn = 'test-serial-number';
         $result = $this->field->setSn($sn);
-        
+
         $this->assertSame($this->field, $result);
         $this->assertEquals($sn, $this->field->getSn());
     }
@@ -88,7 +88,7 @@ class FieldTest extends TestCase
     {
         $type = FieldType::STRING;
         $result = $this->field->setType($type);
-        
+
         $this->assertSame($this->field, $result);
         $this->assertSame($type, $this->field->getType());
     }
@@ -97,7 +97,7 @@ class FieldTest extends TestCase
     {
         $sortNumber = 100;
         $result = $this->field->setSortNumber($sortNumber);
-        
+
         $this->assertSame($this->field, $result);
         $this->assertEquals($sortNumber, $this->field->getSortNumber());
     }
@@ -106,7 +106,7 @@ class FieldTest extends TestCase
     {
         $required = true;
         $result = $this->field->setRequired($required);
-        
+
         $this->assertSame($this->field, $result);
         $this->assertTrue($this->field->isRequired());
     }
@@ -115,7 +115,7 @@ class FieldTest extends TestCase
     {
         $maxInput = 10;
         $result = $this->field->setMaxInput($maxInput);
-        
+
         $this->assertSame($this->field, $result);
         $this->assertEquals($maxInput, $this->field->getMaxInput());
     }
@@ -124,7 +124,7 @@ class FieldTest extends TestCase
     {
         $title = '测试字段';
         $result = $this->field->setTitle($title);
-        
+
         $this->assertSame($this->field, $result);
         $this->assertEquals($title, $this->field->getTitle());
     }
@@ -133,7 +133,7 @@ class FieldTest extends TestCase
     {
         $placeholder = '请输入测试内容';
         $result = $this->field->setPlaceholder($placeholder);
-        
+
         $this->assertSame($this->field, $result);
         $this->assertEquals($placeholder, $this->field->getPlaceholder());
     }
@@ -142,7 +142,7 @@ class FieldTest extends TestCase
     {
         $bgImage = '/path/to/image.jpg';
         $result = $this->field->setBgImage($bgImage);
-        
+
         $this->assertSame($this->field, $result);
         $this->assertEquals($bgImage, $this->field->getBgImage());
     }
@@ -151,7 +151,7 @@ class FieldTest extends TestCase
     {
         $description = '这是一个测试描述';
         $result = $this->field->setDescription($description);
-        
+
         $this->assertSame($this->field, $result);
         $this->assertEquals($description, $this->field->getDescription());
     }
@@ -160,7 +160,7 @@ class FieldTest extends TestCase
     {
         $expression = 'form.field1 == "value"';
         $result = $this->field->setShowExpression($expression);
-        
+
         $this->assertSame($this->field, $result);
         $this->assertEquals($expression, $this->field->getShowExpression());
     }
@@ -169,7 +169,7 @@ class FieldTest extends TestCase
     {
         $extra = Json::encode(['key' => 'value']);
         $result = $this->field->setExtra($extra);
-        
+
         $this->assertSame($this->field, $result);
         $this->assertEquals($extra, $this->field->getExtra());
     }
@@ -179,7 +179,7 @@ class FieldTest extends TestCase
         $extraData = ['key' => 'value', 'nested' => ['a' => 1]];
         $extraJson = Json::encode($extraData);
         $this->field->setExtra($extraJson);
-        
+
         $result = $this->field->getExtraConfig();
         $this->assertEquals($extraData, $result);
     }
@@ -187,7 +187,7 @@ class FieldTest extends TestCase
     public function testExtraConfig_当Extra为null时返回空数组()
     {
         $this->field->setExtra(null);
-        
+
         $result = $this->field->getExtraConfig();
         $this->assertEmpty($result);
     }
@@ -195,7 +195,7 @@ class FieldTest extends TestCase
     public function testExtraConfig_当Extra不是有效JSON时返回空数组()
     {
         $this->field->setExtra('invalid json');
-        
+
         $result = $this->field->getExtraConfig();
         $this->assertEmpty($result);
     }
@@ -203,7 +203,7 @@ class FieldTest extends TestCase
     public function testOptions_初始化为空集合()
     {
         $options = $this->field->getOptions();
-        
+
         $this->assertInstanceOf(ArrayCollection::class, $options);
         $this->assertTrue($options->isEmpty());
     }
@@ -215,9 +215,9 @@ class FieldTest extends TestCase
             ->method('setField')
             ->with($this->identicalTo($this->field))
             ->willReturn($option);
-        
+
         $result = $this->field->addOption($option);
-        
+
         $this->assertSame($this->field, $result);
         $this->assertTrue($this->field->getOptions()->contains($option));
     }
@@ -225,12 +225,12 @@ class FieldTest extends TestCase
     public function testRemoveOption_移除选项并解除双向关系()
     {
         $option = $this->createMock(Option::class);
-        
+
         // 记录setField调用的参数
         $callCount = 0;
         $option->expects($this->exactly(2))
             ->method('setField')
-            ->willReturnCallback(function($arg) use (&$callCount, $option) {
+            ->willReturnCallback(function ($arg) use (&$callCount, $option) {
                 if ($callCount === 0) {
                     // 第一次调用，添加时
                     $this->assertSame($this->field, $arg);
@@ -241,19 +241,19 @@ class FieldTest extends TestCase
                 $callCount++;
                 return $option;
             });
-        
+
         // 模拟选项的getField方法返回当前field
         $option->expects($this->any())
             ->method('getField')
             ->willReturn($this->field);
-        
+
         // 先添加选项
         $this->field->addOption($option);
         $this->assertTrue($this->field->getOptions()->contains($option));
-        
+
         // 然后移除选项
         $result = $this->field->removeOption($option);
-        
+
         $this->assertSame($this->field, $result);
         $this->assertFalse($this->field->getOptions()->contains($option));
     }
@@ -262,7 +262,7 @@ class FieldTest extends TestCase
     {
         $ip = '127.0.0.1';
         $result = $this->field->setCreatedFromIp($ip);
-        
+
         $this->assertSame($this->field, $result);
         $this->assertEquals($ip, $this->field->getCreatedFromIp());
     }
@@ -271,7 +271,7 @@ class FieldTest extends TestCase
     {
         $ip = '127.0.0.1';
         $result = $this->field->setUpdatedFromIp($ip);
-        
+
         $this->assertSame($this->field, $result);
         $this->assertEquals($ip, $this->field->getUpdatedFromIp());
     }
@@ -282,7 +282,7 @@ class FieldTest extends TestCase
         $this->field->setType(FieldType::STRING);
         $this->field->setTitle('测试字段');
         $this->field->setSn('F001');
-        
+
         $this->assertEquals('', (string)$this->field);
     }
 
@@ -292,13 +292,13 @@ class FieldTest extends TestCase
         $this->field->setType(FieldType::STRING);
         $this->field->setTitle('测试字段');
         $this->field->setSn('F001');
-        
+
         // 使用反射设置私有属性id
         $reflectionClass = new \ReflectionClass(Field::class);
         $property = $reflectionClass->getProperty('id');
         $property->setAccessible(true);
         $property->setValue($this->field, 123);
-        
+
         $expected = 'F001.字符串 测试字段';
         $this->assertEquals($expected, (string)$this->field);
     }
@@ -310,13 +310,13 @@ class FieldTest extends TestCase
         $this->field->setTitle('测试字段');
         $this->field->setSn('F001');
         $this->field->setShowExpression('form.field1 == "value"');
-        
+
         // 使用反射设置私有属性id
         $reflectionClass = new \ReflectionClass(Field::class);
         $property = $reflectionClass->getProperty('id');
         $property->setAccessible(true);
         $property->setValue($this->field, 123);
-        
+
         $expected = 'F001.【如果 form.field1 == "value"】字符串 测试字段';
         $this->assertEquals($expected, (string)$this->field);
     }
@@ -334,13 +334,13 @@ class FieldTest extends TestCase
         $this->field->setDescription('这是一个测试字段');
         $this->field->setValid(true);
         $this->field->setExtra('{"custom":"value"}');
-        
+
         // 设置ID（使用反射）
         $reflectionClass = new \ReflectionClass(Field::class);
         $property = $reflectionClass->getProperty('id');
         $property->setAccessible(true);
         $property->setValue($this->field, 123);
-        
+
         // 创建一个模拟的选项
         $option = $this->createMock(Option::class);
         $option->expects($this->once())
@@ -353,12 +353,12 @@ class FieldTest extends TestCase
         $option->expects($this->once())
             ->method('setField')
             ->willReturn($option);
-        
+
         $this->field->addOption($option);
-        
+
         // 获取结果
         $result = $this->field->retrievePlainArray();
-        
+
         // 验证数组结构
         $this->assertArrayHasKey('sn', $result);
         $this->assertArrayHasKey('type', $result);
@@ -375,7 +375,7 @@ class FieldTest extends TestCase
         $this->assertArrayHasKey('valid', $result);
         $this->assertArrayHasKey('extraConfig', $result);
         $this->assertArrayHasKey('extra', $result);
-        
+
         // 验证值
         $this->assertEquals('F001', $result['sn']);
         $this->assertEquals(FieldType::STRING, $result['type']);
@@ -389,7 +389,7 @@ class FieldTest extends TestCase
         $this->assertTrue($result['valid']);
         $this->assertEquals('{"custom":"value"}', $result['extra']);
         $this->assertEquals(['custom' => 'value'], $result['extraConfig']);
-        
+
         // 验证选项数组
         $this->assertCount(1, $result['options']);
         $this->assertEquals('选项1', $result['options'][0]['title']);
@@ -408,13 +408,13 @@ class FieldTest extends TestCase
         $this->field->setDescription('这是一个选择字段');
         $this->field->setValid(true);
         $this->field->setExtra('{"multiple":false}');
-        
+
         // 设置ID（使用反射）
         $reflectionClass = new \ReflectionClass(Field::class);
         $property = $reflectionClass->getProperty('id');
         $property->setAccessible(true);
         $property->setValue($this->field, 456);
-        
+
         // 创建两个模拟的选项
         $option1 = $this->createMock(Option::class);
         $option1->expects($this->once())
@@ -427,7 +427,7 @@ class FieldTest extends TestCase
         $option1->expects($this->once())
             ->method('setField')
             ->willReturn($option1);
-        
+
         $option2 = $this->createMock(Option::class);
         $option2->expects($this->once())
             ->method('retrieveApiArray')
@@ -439,13 +439,13 @@ class FieldTest extends TestCase
         $option2->expects($this->once())
             ->method('setField')
             ->willReturn($option2);
-        
+
         $this->field->addOption($option1);
         $this->field->addOption($option2);
-        
+
         // 获取结果
         $result = $this->field->retrieveApiArray();
-        
+
         // 验证数组结构（API数组应该与Plain数组有相同的结构）
         $this->assertArrayHasKey('sn', $result);
         $this->assertArrayHasKey('type', $result);
@@ -462,7 +462,7 @@ class FieldTest extends TestCase
         $this->assertArrayHasKey('valid', $result);
         $this->assertArrayHasKey('extraConfig', $result);
         $this->assertArrayHasKey('extra', $result);
-        
+
         // 验证值
         $this->assertEquals('F001', $result['sn']);
         $this->assertEquals(FieldType::SINGLE_SELECT, $result['type']);
@@ -476,7 +476,7 @@ class FieldTest extends TestCase
         $this->assertTrue($result['valid']);
         $this->assertEquals('{"multiple":false}', $result['extra']);
         $this->assertEquals(['multiple' => false], $result['extraConfig']);
-        
+
         // 验证选项数组
         $this->assertCount(2, $result['options']);
         $this->assertEquals('API选项1', $result['options'][0]['title']);
@@ -484,4 +484,4 @@ class FieldTest extends TestCase
         $this->assertEquals('API选项2', $result['options'][1]['title']);
         $this->assertEquals('api_opt2', $result['options'][1]['value']);
     }
-} 
+}

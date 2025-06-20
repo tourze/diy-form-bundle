@@ -27,7 +27,7 @@ class RecordTest extends TestCase
     public function testDatas_初始化为空集合()
     {
         $datas = $this->record->getDatas();
-        
+
         $this->assertInstanceOf(ArrayCollection::class, $datas);
         $this->assertTrue($datas->isEmpty());
     }
@@ -36,7 +36,7 @@ class RecordTest extends TestCase
     {
         $form = $this->createMock(Form::class);
         $result = $this->record->setForm($form);
-        
+
         $this->assertSame($this->record, $result);
         $this->assertSame($form, $this->record->getForm());
     }
@@ -48,9 +48,9 @@ class RecordTest extends TestCase
             ->method('setRecord')
             ->with($this->identicalTo($this->record))
             ->willReturn($data);
-        
+
         $result = $this->record->addData($data);
-        
+
         $this->assertSame($this->record, $result);
         $this->assertTrue($this->record->getDatas()->contains($data));
     }
@@ -59,23 +59,23 @@ class RecordTest extends TestCase
     {
         // 创建模拟对象
         $data = $this->createMock(Data::class);
-        
+
         // 首先添加数据
         $this->record->addData($data);
-        
+
         // 设置期望
         $data->expects($this->once())
             ->method('getRecord')
             ->willReturn($this->record);
-        
+
         $data->expects($this->once())
             ->method('setRecord')
             ->with(null)
             ->willReturn($data);
-        
+
         // 移除数据
         $result = $this->record->removeData($data);
-        
+
         $this->assertSame($this->record, $result);
         $this->assertFalse($this->record->getDatas()->contains($data));
     }
@@ -84,7 +84,7 @@ class RecordTest extends TestCase
     {
         $user = $this->createMock(UserInterface::class);
         $result = $this->record->setUser($user);
-        
+
         $this->assertSame($this->record, $result);
         $this->assertSame($user, $this->record->getUser());
     }
@@ -92,9 +92,9 @@ class RecordTest extends TestCase
     public function testFinished_可以设置和获取()
     {
         $this->assertNull($this->record->isFinished());
-        
+
         $result = $this->record->setFinished(true);
-        
+
         $this->assertSame($this->record, $result);
         $this->assertTrue($this->record->isFinished());
     }
@@ -103,7 +103,7 @@ class RecordTest extends TestCase
     {
         $startTime = new \DateTime();
         $result = $this->record->setStartTime($startTime);
-        
+
         $this->assertSame($this->record, $result);
         $this->assertSame($startTime, $this->record->getStartTime());
     }
@@ -112,7 +112,7 @@ class RecordTest extends TestCase
     {
         $finishTime = new \DateTime();
         $result = $this->record->setFinishTime($finishTime);
-        
+
         $this->assertSame($this->record, $result);
         $this->assertSame($finishTime, $this->record->getFinishTime());
     }
@@ -121,7 +121,7 @@ class RecordTest extends TestCase
     {
         $tags = ['tag1' => true, 'tag2' => false];
         $result = $this->record->setAnswerTags($tags);
-        
+
         $this->assertSame($this->record, $result);
         $this->assertEquals($tags, $this->record->getAnswerTags());
     }
@@ -130,7 +130,7 @@ class RecordTest extends TestCase
     {
         $data = ['field1' => 'value1', 'field2' => 'value2'];
         $result = $this->record->setSubmitData($data);
-        
+
         $this->assertSame($this->record, $result);
         $this->assertEquals($data, $this->record->getSubmitData());
     }
@@ -139,7 +139,7 @@ class RecordTest extends TestCase
     {
         $inviter = $this->createMock(UserInterface::class);
         $result = $this->record->setInviter($inviter);
-        
+
         $this->assertSame($this->record, $result);
         $this->assertSame($inviter, $this->record->getInviter());
     }
@@ -148,7 +148,7 @@ class RecordTest extends TestCase
     {
         $version = 5;
         $result = $this->record->setLockVersion($version);
-        
+
         $this->assertSame($this->record, $result);
         $this->assertEquals($version, $this->record->getLockVersion());
     }
@@ -157,7 +157,7 @@ class RecordTest extends TestCase
     {
         $data = ['extra1' => 'value1', 'extra2' => 'value2'];
         $result = $this->record->setExtraData($data);
-        
+
         $this->assertSame($this->record, $result);
         $this->assertEquals($data, $this->record->getExtraData());
     }
@@ -166,7 +166,7 @@ class RecordTest extends TestCase
     {
         $createdBy = 'test-user';
         $result = $this->record->setCreatedBy($createdBy);
-        
+
         $this->assertSame($this->record, $result);
         $this->assertEquals($createdBy, $this->record->getCreatedBy());
     }
@@ -175,7 +175,7 @@ class RecordTest extends TestCase
     {
         $updatedBy = 'test-user';
         $result = $this->record->setUpdatedBy($updatedBy);
-        
+
         $this->assertSame($this->record, $result);
         $this->assertEquals($updatedBy, $this->record->getUpdatedBy());
     }
@@ -196,14 +196,14 @@ class RecordTest extends TestCase
 
     public function testCreateTime_可以设置和获取()
     {
-        $now = new \DateTime();
+        $now = new \DateTimeImmutable();
         $this->record->setCreateTime($now);
         $this->assertSame($now, $this->record->getCreateTime());
     }
 
     public function testUpdateTime_可以设置和获取()
     {
-        $now = new \DateTime();
+        $now = new \DateTimeImmutable();
         $this->record->setUpdateTime($now);
         $this->assertSame($now, $this->record->getUpdateTime());
     }
@@ -212,7 +212,7 @@ class RecordTest extends TestCase
     {
         $ip = '127.0.0.1';
         $result = $this->record->setCreatedFromIp($ip);
-        
+
         $this->assertSame($this->record, $result);
         $this->assertEquals($ip, $this->record->getCreatedFromIp());
     }
@@ -221,7 +221,7 @@ class RecordTest extends TestCase
     {
         $ip = '127.0.0.1';
         $result = $this->record->setUpdatedFromIp($ip);
-        
+
         $this->assertSame($this->record, $result);
         $this->assertEquals($ip, $this->record->getUpdatedFromIp());
     }
@@ -231,54 +231,54 @@ class RecordTest extends TestCase
         // 准备模拟数据
         $field1 = $this->createMock(Field::class);
         $field1->expects($this->any())
-              ->method('isValid')
-              ->willReturn(true);
+            ->method('isValid')
+            ->willReturn(true);
         $field1->expects($this->any())
-              ->method('getSn')
-              ->willReturn('field-sn-1');
-        
+            ->method('getSn')
+            ->willReturn('field-sn-1');
+
         $field2 = $this->createMock(Field::class);
         $field2->expects($this->any())
-              ->method('isValid')
-              ->willReturn(false); // 无效字段，不应包含在结果中
-        
+            ->method('isValid')
+            ->willReturn(false); // 无效字段，不应包含在结果中
+
         $field3 = $this->createMock(Field::class);
         $field3->expects($this->any())
-              ->method('isValid')
-              ->willReturn(true);
+            ->method('isValid')
+            ->willReturn(true);
         $field3->expects($this->any())
-              ->method('getSn')
-              ->willReturn('field-sn-3');
-        
+            ->method('getSn')
+            ->willReturn('field-sn-3');
+
         $data1 = $this->createMock(Data::class);
         $data1->expects($this->any())
-              ->method('getField')
-              ->willReturn($field1);
-        
+            ->method('getField')
+            ->willReturn($field1);
+
         $data2 = $this->createMock(Data::class);
         $data2->expects($this->any())
-              ->method('getField')
-              ->willReturn($field2);
-        
+            ->method('getField')
+            ->willReturn($field2);
+
         $data3 = $this->createMock(Data::class);
         $data3->expects($this->any())
-              ->method('getField')
-              ->willReturn($field3);
-        
+            ->method('getField')
+            ->willReturn($field3);
+
         $data4 = $this->createMock(Data::class);
         $data4->expects($this->any())
-              ->method('getField')
-              ->willReturn(null); // 没有字段的数据，不应包含在结果中
-        
+            ->method('getField')
+            ->willReturn(null); // 没有字段的数据，不应包含在结果中
+
         // 添加数据到record
         $this->record->addData($data1);
         $this->record->addData($data2);
         $this->record->addData($data3);
         $this->record->addData($data4);
-        
+
         // 测试方法
         $result = $this->record->getDataList();
-        
+
         // 验证结果
         $this->assertCount(2, $result); // 只有2个有效的数据
         $this->assertArrayHasKey('field-sn-1', $result);
@@ -292,37 +292,37 @@ class RecordTest extends TestCase
         // 准备模拟数据
         $field1 = $this->createMock(Field::class);
         $field1->expects($this->any())
-              ->method('getId')
-              ->willReturn(1);
-        
+            ->method('getId')
+            ->willReturn(1);
+
         $field2 = $this->createMock(Field::class);
         $field2->expects($this->any())
-              ->method('getId')
-              ->willReturn(2);
-        
+            ->method('getId')
+            ->willReturn(2);
+
         $field3 = $this->createMock(Field::class);
         $field3->expects($this->any())
-              ->method('getId')
-              ->willReturn(3);
-        
+            ->method('getId')
+            ->willReturn(3);
+
         $data1 = $this->createMock(Data::class);
         $data1->expects($this->any())
-              ->method('getField')
-              ->willReturn($field1);
-        
+            ->method('getField')
+            ->willReturn($field1);
+
         $data2 = $this->createMock(Data::class);
         $data2->expects($this->any())
-              ->method('getField')
-              ->willReturn($field2);
-        
+            ->method('getField')
+            ->willReturn($field2);
+
         // 添加数据到record
         $this->record->addData($data1);
         $this->record->addData($data2);
-        
+
         // 测试已回答的字段
         $this->assertTrue($this->record->checkHasAnswered($field1));
         $this->assertTrue($this->record->checkHasAnswered($field2));
-        
+
         // 测试未回答的字段
         $this->assertFalse($this->record->checkHasAnswered($field3));
     }
@@ -332,43 +332,43 @@ class RecordTest extends TestCase
         // 准备模拟数据
         $field1 = $this->createMock(Field::class);
         $field1->expects($this->any())
-              ->method('getSn')
-              ->willReturn('field-sn-1');
-        
+            ->method('getSn')
+            ->willReturn('field-sn-1');
+
         $field2 = $this->createMock(Field::class);
         $field2->expects($this->any())
-              ->method('getSn')
-              ->willReturn('field-sn-2');
-        
+            ->method('getSn')
+            ->willReturn('field-sn-2');
+
         $data1 = $this->createMock(Data::class);
         $data1->expects($this->any())
-              ->method('getField')
-              ->willReturn($field1);
-        
+            ->method('getField')
+            ->willReturn($field1);
+
         $data2 = $this->createMock(Data::class);
         $data2->expects($this->any())
-              ->method('getField')
-              ->willReturn($field2);
-        
+            ->method('getField')
+            ->willReturn($field2);
+
         $data3 = $this->createMock(Data::class);
         $data3->expects($this->any())
-              ->method('getField')
-              ->willReturn(null); // 没有字段的数据
-        
+            ->method('getField')
+            ->willReturn(null); // 没有字段的数据
+
         // 添加数据到record
         $this->record->addData($data1);
         $this->record->addData($data2);
         $this->record->addData($data3);
-        
+
         // 测试找到的情况
         $result1 = $this->record->obtainDataBySN('field-sn-1');
         $this->assertSame($data1, $result1);
-        
+
         $result2 = $this->record->obtainDataBySN('field-sn-2');
         $this->assertSame($data2, $result2);
-        
+
         // 测试找不到的情况
         $result3 = $this->record->obtainDataBySN('field-sn-not-exist');
         $this->assertNull($result3);
     }
-} 
+}

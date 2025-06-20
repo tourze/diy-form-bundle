@@ -30,7 +30,7 @@ class OptionTest extends TestCase
 
     public function testUpdateTime_可以设置和获取()
     {
-        $now = new \DateTime();
+        $now = new \DateTimeImmutable();
         $this->option->setUpdateTime($now);
         $this->assertSame($now, $this->option->getUpdateTime());
     }

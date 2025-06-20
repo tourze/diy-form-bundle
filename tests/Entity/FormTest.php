@@ -32,7 +32,7 @@ class FormTest extends TestCase
 
     public function testUpdateTime_可以设置和获取()
     {
-        $now = new \DateTime();
+        $now = new \DateTimeImmutable();
         $this->form->setUpdateTime($now);
         $this->assertSame($now, $this->form->getUpdateTime());
     }
