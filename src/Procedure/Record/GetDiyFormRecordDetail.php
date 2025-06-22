@@ -51,7 +51,7 @@ class GetDiyFormRecordDetail extends BaseProcedure
             'id' => $this->recordId,
             // TODO 因为去除了用户条件判断，所以这里有平行绕过漏洞
         ]);
-        if (!$record) {
+        if (null === $record) {
             throw new ApiException('查找不到提交记录');
         }
 
@@ -93,7 +93,7 @@ class GetDiyFormRecordDetail extends BaseProcedure
                     ]);
                 }
 
-                if ($res) {
+                if (true === $res) {
                     if (!isset($result['analyses'][$analysis->getCategory()])) {
                         $result['analyses'][$analysis->getCategory()] = [];
                     }

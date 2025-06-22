@@ -2,7 +2,7 @@
 
 namespace DiyFormBundle\Procedure\Form;
 
-use Carbon\Carbon;
+use Carbon\CarbonImmutable;
 use DiyFormBundle\Repository\FormRepository;
 use Tourze\JsonRPC\Core\Attribute\MethodDoc;
 use Tourze\JsonRPC\Core\Attribute\MethodExpose;
@@ -29,11 +29,11 @@ class GetDiyFormDetail extends BaseProcedure
             'id' => $this->formId,
             'valid' => true,
         ]);
-        if (!$form) {
+        if (null === $form) {
             throw new ApiException('找不到表单配置');
         }
 
-        $now = Carbon::now();
+        $now = CarbonImmutable::now();
         if ($now->lessThan($form->getStartTime())) {
             throw new ApiException('该表单还未开始');
         }

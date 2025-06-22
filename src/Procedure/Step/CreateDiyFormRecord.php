@@ -2,7 +2,7 @@
 
 namespace DiyFormBundle\Procedure\Step;
 
-use Carbon\Carbon;
+use Carbon\CarbonImmutable;
 use DiyFormBundle\Entity\Record;
 use DiyFormBundle\Repository\FormRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -41,7 +41,7 @@ class CreateDiyFormRecord extends LockableProcedure
             'id' => $this->formId,
             'valid' => true,
         ]);
-        if (!$form) {
+        if (null === $form) {
             throw new ApiException('找不到表单');
         }
 
@@ -49,7 +49,7 @@ class CreateDiyFormRecord extends LockableProcedure
         $record->setForm($form);
         $record->setUser($this->security->getUser());
         $record->setFinished(false);
-        $record->setStartTime(Carbon::now());
+        $record->setStartTime(CarbonImmutable::now());
         $this->entityManager->persist($record);
         $this->entityManager->flush();
 

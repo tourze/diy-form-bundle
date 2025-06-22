@@ -52,7 +52,7 @@ class SessionService
                 ]);
                 $res = $expressionLanguage->evaluate($field->getShowExpression(), $expressionValues);
                 // 不满足的话，我们就跳过这个题目
-                if (!$res) {
+                if (false === $res) {
                     $this->logger->debug("不满足{$field->getSn()}的题目条件，跳过", [
                         'field' => $field,
                         'record' => $record,
@@ -70,7 +70,7 @@ class SessionService
         }
 
         // 最终送出去的题目，选项需要多判断一次才能用
-        if ($nextField && $nextField->getField()->getOptions()->count() > 0) {
+        if (null !== $nextField && $nextField->getField()->getOptions()->count() > 0) {
             foreach ($nextField->getField()->getOptions() as $option) {
                 if (empty($option->getShowExpression())) {
                     $nextField->addOption($option);
@@ -82,7 +82,7 @@ class SessionService
                     'values' => $expressionValues,
                 ]);
                 $res = $expressionLanguage->evaluate($option->getShowExpression(), $expressionValues);
-                if (!$res) {
+                if (false === $res) {
                     $this->logger->debug("选项{$option->getId()}不满足显示条件，跳过", [
                         'option' => $option,
                         'record' => $record,

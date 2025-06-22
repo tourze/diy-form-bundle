@@ -16,15 +16,14 @@ use Tourze\DoctrineIpBundle\Attribute\UpdateIpColumn;
 use Tourze\DoctrineSnowflakeBundle\Attribute\SnowflakeColumn;
 use Tourze\DoctrineSnowflakeBundle\Service\SnowflakeIdGenerator;
 use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
-use Tourze\DoctrineUserBundle\Attribute\CreatedByColumn;
-use Tourze\DoctrineUserBundle\Attribute\UpdatedByColumn;
-use Tourze\EasyAdmin\Attribute\Field\ImagePickerField;
+use Tourze\DoctrineUserBundle\Traits\BlameableAware;
 
 #[ORM\Entity(repositoryClass: OptionRepository::class)]
 #[ORM\Table(name: 'diy_form_option', options: ['comment' => '选项'])]
 class Option implements \Stringable, PlainArrayInterface, ApiArrayInterface
 {
     use TimestampableAware;
+    use BlameableAware;
 
     #[ORM\Id]
     #[ORM\GeneratedValue(strategy: 'CUSTOM')]
@@ -32,13 +31,6 @@ class Option implements \Stringable, PlainArrayInterface, ApiArrayInterface
     #[ORM\Column(type: Types::BIGINT, nullable: false, options: ['comment' => 'ID'])]
     private ?string $id = null;
 
-    #[CreatedByColumn]
-    #[ORM\Column(nullable: true, options: ['comment' => '创建人'])]
-    private ?string $createdBy = null;
-
-    #[UpdatedByColumn]
-    #[ORM\Column(nullable: true, options: ['comment' => '更新人'])]
-    private ?string $updatedBy = null;
 
     #[Ignore]
     #[ORM\ManyToOne(targetEntity: Field::class, inversedBy: 'options')]
@@ -48,25 +40,16 @@ class Option implements \Stringable, PlainArrayInterface, ApiArrayInterface
     #[Groups(['restful_read', 'admin_curd'])]
     #[SnowflakeColumn]
     #[ORM\Column(type: Types::STRING, length: 120, options: ['comment' => '序列号'])]
-    private ?string $sn = '';
+    private string $sn = '';
 
-    /**
-     * @LongTextField()
-     */
     #[Groups(['restful_read', 'admin_curd'])]
     #[ORM\Column(type: Types::STRING, length: 1000, options: ['comment' => '选项文本'])]
     private ?string $text = null;
 
-    /**
-     * @LongTextField()
-     */
     #[Groups(['restful_read', 'admin_curd'])]
     #[ORM\Column(type: Types::STRING, length: 1000, nullable: true, options: ['comment' => '说明文本'])]
     private ?string $description = '';
 
-    /**
-     * @LongTextField()
-     */
     #[Groups(['admin_curd'])]
     #[ORM\Column(type: Types::STRING, length: 600, nullable: true, options: ['comment' => '标签'])]
     private ?string $tags = null;
@@ -75,11 +58,6 @@ class Option implements \Stringable, PlainArrayInterface, ApiArrayInterface
     #[ORM\Column(type: Types::TEXT, nullable: true, options: ['comment' => '显示规则'])]
     private ?string $showExpression = null;
 
-    /**
-     * 参考了问卷星的设计 https://www.wjx.cn/help/help.aspx?helpid=149.
-     *
-     * @LongTextField()
-     */
     #[Groups(['restful_read', 'admin_curd'])]
     #[ORM\Column(type: Types::STRING, length: 1000, nullable: true, options: ['comment' => '互斥分组'])]
     private ?string $mutex = null;
@@ -92,12 +70,10 @@ class Option implements \Stringable, PlainArrayInterface, ApiArrayInterface
     #[ORM\Column(type: Types::BOOLEAN, nullable: true, options: ['comment' => '正确答案'])]
     private ?bool $answer = false;
 
-    #[ImagePickerField]
     #[Groups(['restful_read', 'admin_curd'])]
     #[ORM\Column(type: Types::STRING, length: 255, nullable: true, options: ['comment' => 'ICON'])]
     private ?string $icon = null;
 
-    #[ImagePickerField]
     #[Groups(['restful_read', 'admin_curd'])]
     #[ORM\Column(type: Types::STRING, length: 255, nullable: true, options: ['comment' => '选中态ICON'])]
     private ?string $selectedIcon = null;
@@ -112,12 +88,12 @@ class Option implements \Stringable, PlainArrayInterface, ApiArrayInterface
 
     public function __toString(): string
     {
-        if (!$this->getId()) {
+        if (null === $this->getId()) {
             return '';
         }
 
         $str = $this->getText();
-        if ($this->getTags()) {
+        if (null !== $this->getTags()) {
             $str = "[{$this->getTags()}]{$str}";
         }
 
@@ -137,7 +113,7 @@ class Option implements \Stringable, PlainArrayInterface, ApiArrayInterface
             $str = "□{$str}";
         }
 
-        if ($this->getShowExpression()) {
+        if (null !== $this->getShowExpression()) {
             $str = "{$str}。显示规则：{$this->getShowExpression()}";
         }
 
@@ -149,29 +125,6 @@ class Option implements \Stringable, PlainArrayInterface, ApiArrayInterface
         return $this->id;
     }
 
-    public function setCreatedBy(?string $createdBy): self
-    {
-        $this->createdBy = $createdBy;
-
-        return $this;
-    }
-
-    public function getCreatedBy(): ?string
-    {
-        return $this->createdBy;
-    }
-
-    public function setUpdatedBy(?string $updatedBy): self
-    {
-        $this->updatedBy = $updatedBy;
-
-        return $this;
-    }
-
-    public function getUpdatedBy(): ?string
-    {
-        return $this->updatedBy;
-    }
 
     public function getField(): ?Field
     {

@@ -21,20 +21,14 @@ class BeforeAnswerSingleDiyFormEvent extends Event
         $this->user = $user;
     }
 
-    protected $input;
+    protected mixed $input;
 
-    /**
-     * @return null
-     */
-    public function getInput()
+    public function getInput(): mixed
     {
         return $this->input;
     }
 
-    /**
-     * @param null $input
-     */
-    public function setInput($input): void
+    public function setInput(mixed $input): void
     {
         $this->input = $input;
     }

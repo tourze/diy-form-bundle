@@ -12,12 +12,12 @@ use Symfony\Component\Routing\Attribute\Route;
 class SqlController extends AbstractController
 {
     #[Route('/diy-form-sql/{id}', name: 'diy-model-sql')]
-    public function main(string $id, FormRepository $formRepository, Connection $connection): Response
+    public function __invoke(string $id, FormRepository $formRepository, Connection $connection): Response
     {
         $form = $formRepository->findOneBy([
             'id' => $id,
         ]);
-        if (!$form) {
+        if (null === $form) {
             throw new NotFoundHttpException('找不到模型数据');
         }
 

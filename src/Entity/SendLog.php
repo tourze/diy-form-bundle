@@ -8,13 +8,14 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Tourze\DoctrineIndexedBundle\Attribute\IndexColumn;
 use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
-use Tourze\DoctrineUserBundle\Attribute\CreatedByColumn;
+use Tourze\DoctrineUserBundle\Traits\BlameableAware;
 
 #[ORM\Entity(repositoryClass: SendLogRepository::class)]
 #[ORM\Table(name: 'ims_sms_receive_log', options: ['comment' => 'SMS日志'])]
-class SendLog
+class SendLog implements \Stringable
 {
     use TimestampableAware;
+    use BlameableAware;
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: Types::INTEGER, options: ['comment' => 'ID'])]
@@ -36,9 +37,15 @@ class SendLog
     #[ORM\Column(nullable: true, enumType: SmsReceiveEnum::class, options: ['comment' => '接收状态'])]
     private ?SmsReceiveEnum $status = null;
 
-    #[CreatedByColumn]
-    #[ORM\Column(nullable: true, options: ['comment' => '创建人'])]
-    private ?string $createdBy = null;
+    public function __toString(): string
+    {
+        if (null === $this->getId()) {
+            return '';
+        }
+
+        $statusStr = $this->getStatus() !== null ? $this->getStatus()->value : '未知';
+        return "SMS日志#{$this->getId()} - {$this->getMobile()} - {$statusStr}";
+    }
 
     public function getId(): ?int
     {
@@ -105,12 +112,4 @@ class SendLog
         return $this;
     }
 
-    public function setCreatedBy(?string $createdBy): void
-    {
-        $this->createdBy = $createdBy;
-    }
-
-    public function getCreatedBy(): ?string
-    {
-        return $this->createdBy;
-    }}
+}

@@ -53,7 +53,7 @@ class GetMyInviteFormRecordList extends BaseProcedure
                 'id' => $this->formId,
                 'valid' => true,
             ]);
-            if (!$form) {
+            if (null === $form) {
                 throw new ApiException('找不到指定表单');
             }
             $qb->andWhere('a.form = :form');
@@ -70,8 +70,8 @@ class GetMyInviteFormRecordList extends BaseProcedure
         $result = $this->normalizer->normalize($item, 'array', ['groups' => 'restful_read']);
         unset($result['form']);
         $result['extraData'] = $item->getExtraData();
-        $result['userInfo'] = $item->getUser() ? [
-            'nickname' => $item->getUser()->getNickName(),
+        $result['userInfo'] = null !== $item->getUser() ? [
+            'nickname' => $item->getUser()->getUserIdentifier(),
             'avatar' => $this->avatarService->getLink($item->getUser()),
         ] : [];
 

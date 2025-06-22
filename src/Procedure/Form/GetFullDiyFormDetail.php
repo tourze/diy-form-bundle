@@ -2,7 +2,7 @@
 
 namespace DiyFormBundle\Procedure\Form;
 
-use Carbon\Carbon;
+use Carbon\CarbonImmutable;
 use DiyFormBundle\Repository\FormRepository;
 use DiyFormBundle\Repository\RecordRepository;
 use Symfony\Bundle\SecurityBundle\Security;
@@ -34,11 +34,11 @@ class GetFullDiyFormDetail extends BaseProcedure
             'id' => $this->formId,
             'valid' => true,
         ]);
-        if (!$form) {
+        if (null === $form) {
             throw new ApiException('找不到表单配置');
         }
 
-        $now = Carbon::now();
+        $now = CarbonImmutable::now();
         if ($now->lessThan($form->getStartTime())) {
             throw new ApiException('该表单还未开始');
         }
@@ -53,13 +53,13 @@ class GetFullDiyFormDetail extends BaseProcedure
 
         // 上一次的记录
         $result['lastRecord'] = null;
-        if ($this->security->getUser()) {
+        if (null !== $this->security->getUser()) {
             $record = $this->recordRepository->findOneBy([
                 'form' => $form,
                 'user' => $this->security->getUser(),
                 'finished' => true,
             ], orderBy: ['id' => 'DESC']);
-            if ($record) {
+            if (null !== $record) {
                 $result['lastRecord'] = [
                     'id' => $record->getId(),
                     'startTime' => $record->getStartTime()?->format('Y-m-d H:i:s'),

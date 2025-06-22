@@ -16,20 +16,14 @@ use Tourze\DoctrineIpBundle\Attribute\UpdateIpColumn;
 use Tourze\DoctrineSnowflakeBundle\Service\SnowflakeIdGenerator;
 use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
 use Tourze\DoctrineTrackBundle\Attribute\TrackColumn;
-use Tourze\DoctrineUserBundle\Attribute\CreatedByColumn;
-use Tourze\DoctrineUserBundle\Attribute\UpdatedByColumn;
-use Tourze\EasyAdmin\Attribute\Action\Creatable;
-use Tourze\EasyAdmin\Attribute\Action\Editable;
-use Tourze\EasyAdmin\Attribute\Field\ImagePickerField;
-use Tourze\EasyAdmin\Attribute\Field\RichTextField;
+use Tourze\DoctrineUserBundle\Traits\BlameableAware;
 
-#[Creatable(drawerWidth: 1200)]
-#[Editable(drawerWidth: 1200)]
 #[ORM\Entity(repositoryClass: AnalyseRepository::class)]
 #[ORM\Table(name: 'diy_form_analyse', options: ['comment' => '分析规则'])]
 class Analyse implements \Stringable, ApiArrayInterface
 {
     use TimestampableAware;
+    use BlameableAware;
 
     #[ORM\Column(type: Types::TEXT, nullable: true, options: ['comment' => '备注', 'default' => ''])]
     private ?string $remark = null;
@@ -46,9 +40,6 @@ class Analyse implements \Stringable, ApiArrayInterface
         return $this;
     }
 
-    /**
-     * order值大的排序靠前。有效的值范围是[0, 2^32].
-     */
     #[IndexColumn]
     #[ORM\Column(type: Types::INTEGER, nullable: true, options: ['default' => '0', 'comment' => '次序值'])]
     private ?int $sortNumber = 0;
@@ -78,13 +69,6 @@ class Analyse implements \Stringable, ApiArrayInterface
     #[ORM\Column(type: Types::BIGINT, nullable: false, options: ['comment' => 'ID'])]
     private ?string $id = null;
 
-    #[CreatedByColumn]
-    #[ORM\Column(nullable: true, options: ['comment' => '创建人'])]
-    private ?string $createdBy = null;
-
-    #[UpdatedByColumn]
-    #[ORM\Column(nullable: true, options: ['comment' => '更新人'])]
-    private ?string $updatedBy = null;
 
     #[IndexColumn]
     #[TrackColumn]
@@ -102,23 +86,15 @@ class Analyse implements \Stringable, ApiArrayInterface
 
     #[Groups('restful_read')]
     #[ORM\Column(type: Types::STRING, length: 200, options: ['comment' => '标题'])]
-    private ?string $title = '';
+    private string $title = '';
 
-    /**
-     * @LongTextField()
-     */
     #[ORM\Column(type: Types::STRING, length: 2000, options: ['comment' => '判断条件'])]
-    private ?string $rule = '';
+    private string $rule = '';
 
-    /**
-     * @BraftEditor()
-     */
-    #[RichTextField]
     #[Groups('restful_read')]
     #[ORM\Column(type: Types::TEXT, options: ['comment' => '结果'])]
-    private ?string $result = '';
+    private string $result = '';
 
-    #[ImagePickerField]
     #[Groups('restful_read')]
     #[ORM\Column(type: Types::STRING, length: 255, nullable: true, options: ['comment' => '缩略图'])]
     private ?string $thumb = null;
@@ -133,7 +109,7 @@ class Analyse implements \Stringable, ApiArrayInterface
 
     public function __toString(): string
     {
-        if (!$this->getId()) {
+        if (null === $this->getId()) {
             return '';
         }
 
@@ -145,29 +121,6 @@ class Analyse implements \Stringable, ApiArrayInterface
         return $this->id;
     }
 
-    public function setCreatedBy(?string $createdBy): self
-    {
-        $this->createdBy = $createdBy;
-
-        return $this;
-    }
-
-    public function getCreatedBy(): ?string
-    {
-        return $this->createdBy;
-    }
-
-    public function setUpdatedBy(?string $updatedBy): self
-    {
-        $this->updatedBy = $updatedBy;
-
-        return $this;
-    }
-
-    public function getUpdatedBy(): ?string
-    {
-        return $this->updatedBy;
-    }
 
     public function isValid(): ?bool
     {
@@ -193,7 +146,7 @@ class Analyse implements \Stringable, ApiArrayInterface
         return $this;
     }
 
-    public function getRule(): ?string
+    public function getRule(): string
     {
         return $this->rule;
     }
@@ -205,7 +158,7 @@ class Analyse implements \Stringable, ApiArrayInterface
         return $this;
     }
 
-    public function getResult(): ?string
+    public function getResult(): string
     {
         return $this->result;
     }
@@ -217,7 +170,7 @@ class Analyse implements \Stringable, ApiArrayInterface
         return $this;
     }
 
-    public function getTitle(): ?string
+    public function getTitle(): string
     {
         return $this->title;
     }

@@ -3,7 +3,7 @@
 namespace DiyFormBundle\Entity;
 
 use AntdCpBundle\Builder\Field\BraftEditor;
-use Carbon\Carbon;
+use Carbon\CarbonImmutable;
 use DiyFormBundle\Repository\FormRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -19,12 +19,7 @@ use Tourze\DoctrineIpBundle\Attribute\CreateIpColumn;
 use Tourze\DoctrineIpBundle\Attribute\UpdateIpColumn;
 use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
 use Tourze\DoctrineTrackBundle\Attribute\TrackColumn;
-use Tourze\DoctrineUserBundle\Attribute\CreatedByColumn;
-use Tourze\DoctrineUserBundle\Attribute\UpdatedByColumn;
-use Tourze\EasyAdmin\Attribute\Action\CurdAction;
-use Tourze\EasyAdmin\Attribute\Event\BeforeCreate;
-use Tourze\EasyAdmin\Attribute\Event\BeforeEdit;
-use Tourze\EasyAdmin\Attribute\Field\RichTextField;
+use Tourze\DoctrineUserBundle\Traits\BlameableAware;
 use Tourze\JsonRPC\Core\Exception\ApiException;
 use Yiisoft\Arrays\ArraySorter;
 
@@ -42,10 +37,8 @@ class Form implements PlainArrayInterface, ApiArrayInterface, \Stringable
         return $this->id;
     }
     use TimestampableAware;
+    use BlameableAware;
 
-    /**
-     * order值大的排序靠前。有效的值范围是[0, 2^32].
-     */
     #[IndexColumn]
     #[ORM\Column(type: Types::INTEGER, nullable: true, options: ['default' => '0', 'comment' => '次序值'])]
     private ?int $sortNumber = 0;
@@ -69,13 +62,6 @@ class Form implements PlainArrayInterface, ApiArrayInterface, \Stringable
         ];
     }
 
-    #[CreatedByColumn]
-    #[ORM\Column(nullable: true, options: ['comment' => '创建人'])]
-    private ?string $createdBy = null;
-
-    #[UpdatedByColumn]
-    #[ORM\Column(nullable: true, options: ['comment' => '更新人'])]
-    private ?string $updatedBy = null;
 
     #[IndexColumn]
     #[TrackColumn]
@@ -89,15 +75,10 @@ class Form implements PlainArrayInterface, ApiArrayInterface, \Stringable
     /**
      * @var Collection<Field>
      */
-    #[CurdAction(label: '字段/题目', drawerWidth: '90%')]
     #[Ignore]
     #[ORM\OneToMany(mappedBy: 'form', targetEntity: Field::class, fetch: 'EXTRA_LAZY', orphanRemoval: true, indexBy: 'id')]
     private Collection $fields;
 
-    /**
-     * @BraftEditor()
-     */
-    #[RichTextField]
     #[Groups(['restful_read'])]
     #[ORM\Column(type: Types::TEXT, nullable: true, options: ['comment' => '描述'])]
     private ?string $description = null;
@@ -106,19 +87,18 @@ class Form implements PlainArrayInterface, ApiArrayInterface, \Stringable
     private ?string $remark = null;
 
     #[Groups(['restful_read'])]
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, options: ['comment' => '开始时间'])]
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE, options: ['comment' => '开始时间'])]
     private ?\DateTimeInterface $startTime = null;
 
     #[Assert\GreaterThan(propertyPath: 'startTime')]
     #[Groups(['restful_read'])]
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, options: ['comment' => '结束时间'])]
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE, options: ['comment' => '结束时间'])]
     private ?\DateTimeInterface $endTime = null;
 
     /**
      * @var Collection<Analyse>
      */
     #[Ignore]
-    #[CurdAction(label: '分析规则', drawerWidth: '70%')]
     #[ORM\OneToMany(mappedBy: 'form', targetEntity: Analyse::class, orphanRemoval: true)]
     private Collection $analyses;
 
@@ -126,7 +106,6 @@ class Form implements PlainArrayInterface, ApiArrayInterface, \Stringable
      * @var Collection<Record>
      */
     #[Ignore]
-    #[CurdAction(label: '提交记录')]
     #[ORM\OneToMany(mappedBy: 'form', targetEntity: Record::class, orphanRemoval: true)]
     private Collection $records;
 
@@ -147,36 +126,13 @@ class Form implements PlainArrayInterface, ApiArrayInterface, \Stringable
 
     public function __toString(): string
     {
-        if (!$this->getId()) {
+        if (null === $this->getId()) {
             return '';
         }
 
         return "{$this->getTitle()}({$this->getId()})";
     }
 
-    public function setCreatedBy(?string $createdBy): self
-    {
-        $this->createdBy = $createdBy;
-
-        return $this;
-    }
-
-    public function getCreatedBy(): ?string
-    {
-        return $this->createdBy;
-    }
-
-    public function setUpdatedBy(?string $updatedBy): self
-    {
-        $this->updatedBy = $updatedBy;
-
-        return $this;
-    }
-
-    public function getUpdatedBy(): ?string
-    {
-        return $this->updatedBy;
-    }
 
     public function isValid(): ?bool
     {
@@ -401,12 +357,10 @@ class Form implements PlainArrayInterface, ApiArrayInterface, \Stringable
         return $result;
     }
 
-    #[BeforeCreate]
-    #[BeforeEdit]
     public function beforeCurdSave(array $form): void
     {
-        $startTime = Carbon::parse($form['startTime']);
-        $endTime = Carbon::parse($form['endTime']);
+        $startTime = CarbonImmutable::parse($form['startTime']);
+        $endTime = CarbonImmutable::parse($form['endTime']);
         if ($startTime->greaterThan($endTime)) {
             throw new ApiException('结束时间不能大于开始时间');
         }

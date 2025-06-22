@@ -101,7 +101,7 @@ class RecordTest extends TestCase
 
     public function testStartTime_可以设置和获取()
     {
-        $startTime = new \DateTime();
+        $startTime = new \DateTimeImmutable();
         $result = $this->record->setStartTime($startTime);
 
         $this->assertSame($this->record, $result);
@@ -110,7 +110,7 @@ class RecordTest extends TestCase
 
     public function testFinishTime_可以设置和获取()
     {
-        $finishTime = new \DateTime();
+        $finishTime = new \DateTimeImmutable();
         $result = $this->record->setFinishTime($finishTime);
 
         $this->assertSame($this->record, $result);

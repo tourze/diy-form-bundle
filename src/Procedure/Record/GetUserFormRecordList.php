@@ -51,7 +51,7 @@ class GetUserFormRecordList extends BaseProcedure
                 'id' => $this->formId,
                 'valid' => true,
             ]);
-            if (!$form) {
+            if (null === $form) {
                 throw new ApiException('找不到指定表单');
             }
             $qb->andWhere('a.form = :form');

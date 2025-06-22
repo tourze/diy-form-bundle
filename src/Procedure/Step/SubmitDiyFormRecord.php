@@ -2,7 +2,7 @@
 
 namespace DiyFormBundle\Procedure\Step;
 
-use Carbon\Carbon;
+use Carbon\CarbonImmutable;
 use DiyFormBundle\Event\SubmitRecordEvent;
 use DiyFormBundle\Repository\FormRepository;
 use DiyFormBundle\Repository\RecordRepository;
@@ -48,7 +48,7 @@ class SubmitDiyFormRecord extends LockableProcedure
             'id' => $this->formId,
             'valid' => true,
         ]);
-        if (!$form) {
+        if (null === $form) {
             throw new ApiException('找不到表单');
         }
 
@@ -56,12 +56,12 @@ class SubmitDiyFormRecord extends LockableProcedure
             'id' => $this->recordId,
             'user' => $this->security->getUser(),
         ]);
-        if (!$record) {
+        if (null === $record) {
             throw new ApiException('找不到答题数据');
         }
 
         $record->setFinished(true);
-        $record->setFinishTime(Carbon::now());
+        $record->setFinishTime(CarbonImmutable::now());
         $record->setAnswerTags($this->tagCalculator->findByRecord($record));
         $this->entityManager->persist($record);
         $this->entityManager->flush();

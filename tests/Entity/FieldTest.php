@@ -283,7 +283,7 @@ class FieldTest extends TestCase
         $this->field->setTitle('测试字段');
         $this->field->setSn('F001');
 
-        $this->assertEquals('', (string)$this->field);
+        $this->assertEquals('F001.字符串 测试字段', (string)$this->field);
     }
 
     public function testToString_有ID时返回正确的字符串表示()

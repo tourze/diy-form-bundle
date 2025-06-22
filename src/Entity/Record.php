@@ -14,20 +14,17 @@ use Symfony\Component\Serializer\Attribute\Ignore;
 use Tourze\DoctrineIndexedBundle\Attribute\IndexColumn;
 use Tourze\DoctrineIpBundle\Attribute\CreateIpColumn;
 use Tourze\DoctrineIpBundle\Attribute\UpdateIpColumn;
-use Tourze\DoctrineTimestampBundle\Attribute\CreateTimeColumn;
-use Tourze\DoctrineTimestampBundle\Attribute\UpdateTimeColumn;
 use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
 use Tourze\DoctrineUserAgentBundle\Attribute\CreateUserAgentColumn;
 use Tourze\DoctrineUserAgentBundle\Attribute\UpdateUserAgentColumn;
-use Tourze\DoctrineUserBundle\Attribute\CreatedByColumn;
-use Tourze\DoctrineUserBundle\Attribute\UpdatedByColumn;
-use Tourze\EasyAdmin\Attribute\Filter\Filterable;
+use Tourze\DoctrineUserBundle\Traits\BlameableAware;
 
 #[ORM\Entity(repositoryClass: RecordRepository::class)]
 #[ORM\Table(name: 'diy_form_record', options: ['comment' => '提交记录'])]
-class Record
+class Record implements \Stringable
 {
     use TimestampableAware;
+    use BlameableAware;
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: Types::INTEGER, options: ['comment' => 'ID'])]
@@ -37,7 +34,7 @@ class Record
     #[Ignore]
     #[ORM\ManyToOne(targetEntity: Form::class, inversedBy: 'records')]
     #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
-    private Form $form;
+    private ?Form $form = null;
 
     /**
      * @var Collection<Data>
@@ -55,12 +52,12 @@ class Record
     private ?bool $finished = null;
 
     #[Groups(['restful_read'])]
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, options: ['comment' => '开始时间'])]
-    private ?\DateTimeInterface $startTime = null;
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE, options: ['comment' => '开始时间'])]
+    private ?\DateTimeImmutable $startTime = null;
 
     #[Groups(['restful_read'])]
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true, options: ['comment' => '完成时间'])]
-    private ?\DateTimeInterface $finishTime = null;
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true, options: ['comment' => '完成时间'])]
+    private ?\DateTimeImmutable $finishTime = null;
 
     #[ORM\Column(type: Types::JSON, nullable: true, options: ['comment' => '答题标签数据'])]
     private ?array $answerTags = [];
@@ -79,13 +76,6 @@ class Record
     #[ORM\Column(type: Types::JSON, nullable: true, options: ['comment' => '额外信息'])]
     private ?array $extraData = [];
 
-    #[CreatedByColumn]
-    #[ORM\Column(nullable: true, options: ['comment' => '创建人'])]
-    private ?string $createdBy = null;
-
-    #[UpdatedByColumn]
-    #[ORM\Column(nullable: true, options: ['comment' => '更新人'])]
-    private ?string $updatedBy = null;
 
     #[CreateUserAgentColumn]
     #[ORM\Column(type: Types::TEXT, nullable: true, options: ['comment' => '创建时UA'])]
@@ -95,16 +85,7 @@ class Record
     #[ORM\Column(type: Types::TEXT, nullable: true, options: ['comment' => '更新时UA'])]
     private ?string $updatedFromUa = null;
 
-    /**
-     * @DateRangePickerField()
-     */
-    #[IndexColumn]
-    #[Filterable(label: '提交时间')]
-    #[CreateTimeColumn]
-    #[Groups(['restful_read', 'admin_curd'])]
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true, options: ['comment' => '创建时间'])]#[UpdateTimeColumn]
-    #[Groups(['admin_curd'])]
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true, options: ['comment' => '更新时间'])]#[CreateIpColumn]
+    #[CreateIpColumn]
     #[ORM\Column(type: Types::STRING, length: 128, nullable: true, options: ['comment' => '创建者IP'])]
     private ?string $createdFromIp = null;
 
@@ -117,17 +98,30 @@ class Record
         $this->datas = new ArrayCollection();
     }
 
+    public function __toString(): string
+    {
+        if (null === $this->getId()) {
+            return '';
+        }
+
+        $formTitle = $this->getForm()?->getTitle() ?? '未知表单';
+        $userId = $this->getUser()?->getUserIdentifier() ?? '匿名用户';
+        $status = $this->isFinished() ? '已完成' : '未完成';
+        
+        return "记录#{$this->getId()} - {$formTitle} - {$userId} - {$status}";
+    }
+
     public function getId(): ?int
     {
         return $this->id;
     }
 
-    public function getForm(): Form
+    public function getForm(): ?Form
     {
         return $this->form;
     }
 
-    public function setForm(Form $form): self
+    public function setForm(?Form $form): self
     {
         $this->form = $form;
 
@@ -188,24 +182,24 @@ class Record
         return $this;
     }
 
-    public function getStartTime(): ?\DateTimeInterface
+    public function getStartTime(): ?\DateTimeImmutable
     {
         return $this->startTime;
     }
 
-    public function setStartTime(\DateTimeInterface $startTime): self
+    public function setStartTime(\DateTimeImmutable $startTime): self
     {
         $this->startTime = $startTime;
 
         return $this;
     }
 
-    public function getFinishTime(): ?\DateTimeInterface
+    public function getFinishTime(): ?\DateTimeImmutable
     {
         return $this->finishTime;
     }
 
-    public function setFinishTime(?\DateTimeInterface $finishTime): self
+    public function setFinishTime(?\DateTimeImmutable $finishTime): self
     {
         $this->finishTime = $finishTime;
 
@@ -220,11 +214,11 @@ class Record
     {
         $result = [];
         foreach ($this->getDatas() as $data) {
-            if (!$data->getField()) {
+            if (null === $data->getField()) {
                 continue;
             }
 
-            if (!$data->getField()->isValid()) {
+            if (false === $data->getField()->isValid()) {
                 continue;
             }
 
@@ -330,29 +324,6 @@ class Record
         return $this;
     }
 
-    public function setCreatedBy(?string $createdBy): self
-    {
-        $this->createdBy = $createdBy;
-
-        return $this;
-    }
-
-    public function getCreatedBy(): ?string
-    {
-        return $this->createdBy;
-    }
-
-    public function setUpdatedBy(?string $updatedBy): self
-    {
-        $this->updatedBy = $updatedBy;
-
-        return $this;
-    }
-
-    public function getUpdatedBy(): ?string
-    {
-        return $this->updatedBy;
-    }
 
     public function setCreatedFromUa(?string $createdFromUa): void
     {

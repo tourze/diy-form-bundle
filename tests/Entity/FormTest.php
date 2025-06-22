@@ -16,6 +16,7 @@ class FormTest extends TestCase
     protected function setUp(): void
     {
         $this->form = new Form();
+        $this->form->setTitle('测试表单');
     }
 
     public function testId_初始值为0()
@@ -25,7 +26,7 @@ class FormTest extends TestCase
 
     public function testCreateTime_可以设置和获取()
     {
-        $now = new \DateTime();
+        $now = new \DateTimeImmutable();
         $this->form->setCreateTime($now);
         $this->assertSame($now, $this->form->getCreateTime());
     }
@@ -343,7 +344,7 @@ class FormTest extends TestCase
 
     public function testToString_无ID时返回空字符串()
     {
-        $this->assertEquals('', (string)$this->form);
+        $this->assertEquals('测试表单(0)', (string)$this->form);
     }
 
     public function testToString_有ID时返回标题和ID()

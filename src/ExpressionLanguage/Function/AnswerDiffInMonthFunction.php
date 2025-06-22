@@ -2,7 +2,7 @@
 
 namespace DiyFormBundle\ExpressionLanguage\Function;
 
-use Carbon\Carbon;
+use Carbon\CarbonImmutable;
 use DiyFormBundle\Entity\Record;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\ExpressionLanguage\ExpressionFunction;
@@ -58,7 +58,7 @@ class AnswerDiffInMonthFunction extends ExpressionFunction
                 continue;
             }
 
-            return Carbon::now()->diffInMonths(Carbon::parse($day));
+            return CarbonImmutable::now()->diffInMonths(CarbonImmutable::parse($day));
         }
 
         return 0;

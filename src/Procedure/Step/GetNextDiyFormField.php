@@ -57,7 +57,7 @@ class GetNextDiyFormField extends LockableProcedure
             'id' => $this->formId,
             'valid' => true,
         ]);
-        if (!$form) {
+        if (null === $form) {
             throw new ApiException('找不到表单');
         }
 
@@ -66,7 +66,7 @@ class GetNextDiyFormField extends LockableProcedure
             'form' => $form,
             'user' => $this->security->getUser(),
         ]);
-        if (!$record) {
+        if (null === $record) {
             throw new ApiException('找不到答题记录');
         }
 
@@ -81,8 +81,8 @@ class GetNextDiyFormField extends LockableProcedure
 
         $result = [
             'hasNext' => null !== $nextField,
-            'answerTags' => $nextField ? $nextField->getAnswerTags() : [],
-            'showBack' => $nextField && $nextField->isShowBack(),
+            'answerTags' => null !== $nextField ? $nextField->getAnswerTags() : [],
+            'showBack' => null !== $nextField && $nextField->isShowBack(),
             'showConfirm' => true, // 基本都有的
         ];
 
@@ -95,7 +95,7 @@ class GetNextDiyFormField extends LockableProcedure
             ->setMaxResults(1)
             ->getQuery()
             ->getOneOrNullResult();
-        if ($lastData) {
+        if (null !== $lastData) {
             $result['showBack'] = $lastData->isDeletable();
         }
 

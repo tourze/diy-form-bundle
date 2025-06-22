@@ -2,7 +2,7 @@
 
 namespace DiyFormBundle\Procedure\Record;
 
-use Carbon\Carbon;
+use Carbon\CarbonImmutable;
 use DiyFormBundle\Entity\Data;
 use DiyFormBundle\Entity\Record;
 use DiyFormBundle\Enum\FieldType;
@@ -64,7 +64,7 @@ class SubmitDiyFormFullRecord extends LockableProcedure
             'id' => $this->formId,
             'valid' => true,
         ]);
-        if (!$form) {
+        if (null === $form) {
             throw new ApiException('找不到表单配置');
         }
         $this->entityManager->getUnitOfWork()->markReadOnly($form);
@@ -75,19 +75,19 @@ class SubmitDiyFormFullRecord extends LockableProcedure
         $record->setFinished(true);
 
         // 获取邀请人信息
-        if ($this->inviter) {
+        if (null !== $this->inviter) {
             $inviter = $this->userLoader->loadUserByIdentifier($this->inviter);
             $record->setInviter($inviter);
         }
 
         try {
-            $record->setStartTime($this->startTime ? Carbon::parse($this->startTime) : Carbon::now());
+            $record->setStartTime(null !== $this->startTime ? CarbonImmutable::parse($this->startTime) : CarbonImmutable::now());
         } catch (\Throwable) {
-            $record->setStartTime(Carbon::now());
+            $record->setStartTime(CarbonImmutable::now());
         }
 
         $record->setSubmitData($this->data);
-        $record->setFinishTime(Carbon::now());
+        $record->setFinishTime(CarbonImmutable::now());
         $this->entityManager->persist($record);
 
         // 答题明细
@@ -96,7 +96,7 @@ class SubmitDiyFormFullRecord extends LockableProcedure
                 'form' => $form,
                 'id' => $datum['fieldId'],
             ]);
-            if (!$field) {
+            if (null === $field) {
                 continue;
             }
 
@@ -105,7 +105,7 @@ class SubmitDiyFormFullRecord extends LockableProcedure
             // 手机号码需要特别处理
             if (FieldType::CAPTCHA_MOBILE_PHONE === $field->getType()) {
                 $phoneNumber = ArrayHelper::getValue($input, 'phoneNumber');
-                if (!$phoneNumber) {
+                if (null === $phoneNumber) {
                     throw new ApiException('请填写手机号码');
                 }
                 $code = ArrayHelper::getValue($input, 'captcha');
@@ -114,7 +114,7 @@ class SubmitDiyFormFullRecord extends LockableProcedure
                 }
 
                 $captchaKey = $this->phoneNumberService->buildCaptchaCacheKey($form, $phoneNumber);
-                if (!$this->cache->has($captchaKey)) {
+                if (false === $this->cache->has($captchaKey)) {
                     throw new ApiException('请先接收手机验证码');
                 }
                 $dbCode = $this->cache->get($captchaKey);

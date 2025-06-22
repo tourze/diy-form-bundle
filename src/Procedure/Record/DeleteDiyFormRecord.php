@@ -37,7 +37,7 @@ class DeleteDiyFormRecord extends LockableProcedure
             'id' => $this->recordId,
             'user' => $this->security->getUser(),
         ]);
-        if (!$record) {
+        if (null === $record) {
             throw new ApiException('查找不到提交记录');
         }
 

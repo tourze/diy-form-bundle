@@ -62,7 +62,7 @@ class AnswerSingleDiyFormQuestion extends LockableProcedure
             'id' => $this->formId,
             'valid' => true,
         ]);
-        if (!$form) {
+        if (null === $form) {
             throw new ApiException('找不到表单');
         }
 
@@ -71,7 +71,7 @@ class AnswerSingleDiyFormQuestion extends LockableProcedure
             'form' => $form,
             'user' => $this->security->getUser(),
         ]);
-        if (!$record) {
+        if (null === $record) {
             throw new ApiException('找不到答题记录');
         }
 
@@ -79,14 +79,14 @@ class AnswerSingleDiyFormQuestion extends LockableProcedure
             'id' => $this->fieldId,
             'form' => $form,
         ]);
-        if (!$inputField) {
+        if (null === $inputField) {
             throw new ApiException('找不到指定题目/字段');
         }
 
         $event = new BeforeAnswerSingleDiyFormEvent();
         $event->setField($inputField);
         $event->setUser($this->security->getUser());
-        $event->setInput($this->input);
+        $event->setInput(is_array($this->input) ? Json::encode($this->input) : (string) $this->input);
         $this->eventDispatcher->dispatch($event);
 
         $this->entityManager->wrapInTransaction(function () use ($record, $inputField, $form) {
@@ -95,7 +95,7 @@ class AnswerSingleDiyFormQuestion extends LockableProcedure
                 'record' => $record,
                 'field' => $inputField,
             ]);
-            if (!$data) {
+            if (null === $data) {
                 $data = new Data();
                 $data->setRecord($record);
                 $data->setField($inputField);

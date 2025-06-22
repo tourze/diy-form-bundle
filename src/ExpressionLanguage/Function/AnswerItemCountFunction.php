@@ -44,7 +44,7 @@ class AnswerItemCountFunction extends ExpressionFunction
             'data' => $data,
         ]);
 
-        if (!$data) {
+        if (null === $data) {
             return 0;
         }
 

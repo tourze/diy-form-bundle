@@ -2,7 +2,7 @@
 
 namespace DiyFormBundle\Procedure\Captcha;
 
-use Carbon\Carbon;
+use Carbon\CarbonImmutable;
 use DiyFormBundle\Event\SendMobileCaptchaEvent;
 use DiyFormBundle\Notifier\Message\SmsTemplateMessage;
 use DiyFormBundle\Repository\FormRepository;
@@ -50,7 +50,7 @@ class SendDiyFromMobileCaptcha extends LockableProcedure
             'id' => $this->formId,
             'valid' => true,
         ]);
-        if (!$form) {
+        if (null === $form) {
             throw new ApiException('找不到表单配置');
         }
 
@@ -68,10 +68,10 @@ class SendDiyFromMobileCaptcha extends LockableProcedure
             throw new ApiException('短信发送失败', previous: $exception);
         }
 
-        if (!$event->isSent()) {
+        if (false === $event->isSent()) {
             $params = [
                 'user' => $this->security->getUser(),
-                'now' => Carbon::now(),
+                'now' => CarbonImmutable::now(),
                 'code' => $code,
             ];
 

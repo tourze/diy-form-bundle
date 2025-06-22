@@ -15,10 +15,10 @@ class TestController extends AbstractController
      * @throws \Exception
      */
     #[Route('/diy-form/get-form-tags/{id}', methods: ['GET'])]
-    public function getFormTags(string $id, FormRepository $formRepository): Response
+    public function __invoke(string $id, FormRepository $formRepository): Response
     {
         $form = $formRepository->find($id);
-        if (!$form) {
+        if (null === $form) {
             throw new \Exception('找不到表单配置');
         }
 

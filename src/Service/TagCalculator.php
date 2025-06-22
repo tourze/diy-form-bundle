@@ -31,7 +31,7 @@ class TagCalculator
                 'data' => $data,
             ]);
 
-            if ($data->getField()) {
+            if (null !== $data->getField()) {
                 foreach ($data->getField()->getOptions() as $option) {
                     $_tags = $option->getTagList();
                     if (empty($_tags)) {

@@ -23,7 +23,7 @@ class OptionTest extends TestCase
 
     public function testCreateTime_可以设置和获取()
     {
-        $now = new \DateTime();
+        $now = new \DateTimeImmutable();
         $this->option->setCreateTime($now);
         $this->assertSame($now, $this->option->getCreateTime());
     }

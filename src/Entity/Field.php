@@ -19,13 +19,7 @@ use Tourze\DoctrineIpBundle\Attribute\CreateIpColumn;
 use Tourze\DoctrineIpBundle\Attribute\UpdateIpColumn;
 use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
 use Tourze\DoctrineTrackBundle\Attribute\TrackColumn;
-use Tourze\DoctrineUserBundle\Attribute\CreatedByColumn;
-use Tourze\DoctrineUserBundle\Attribute\UpdatedByColumn;
-use Tourze\EasyAdmin\Attribute\Action\Creatable;
-use Tourze\EasyAdmin\Attribute\Action\Editable;
-use Tourze\EasyAdmin\Attribute\Action\Listable;
-use Tourze\EasyAdmin\Attribute\Field\ImagePickerField;
-use Tourze\EasyAdmin\Attribute\Field\RichTextField;
+use Tourze\DoctrineUserBundle\Traits\BlameableAware;
 use Yiisoft\Json\Json;
 
 /**
@@ -33,9 +27,6 @@ use Yiisoft\Json\Json;
  *
  * @see https://symfony.com/doc/current/components/expression_language.html
  */
-#[Listable(sortColumn: ['sortNumber' => 'DESC', 'id' => 'ASC'])]
-#[Creatable(drawerWidth: 1380)]
-#[Editable(drawerWidth: 1380)]
 #[ORM\Entity(repositoryClass: FieldRepository::class)]
 #[ORM\Table(name: 'diy_form_field', options: ['comment' => '字段配置'])]
 #[ORM\UniqueConstraint(name: 'diy_form_field_idx_uniq', columns: ['form_id', 'sn'])]
@@ -51,14 +42,7 @@ class Field implements \Stringable, PlainArrayInterface, ApiArrayInterface
         return $this->id;
     }
     use TimestampableAware;
-
-    #[CreatedByColumn]
-    #[ORM\Column(nullable: true, options: ['comment' => '创建人'])]
-    private ?string $createdBy = null;
-
-    #[UpdatedByColumn]
-    #[ORM\Column(nullable: true, options: ['comment' => '更新人'])]
-    private ?string $updatedBy = null;
+    use BlameableAware;
 
     #[IndexColumn]
     #[TrackColumn]
@@ -70,14 +54,9 @@ class Field implements \Stringable, PlainArrayInterface, ApiArrayInterface
     #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
     private ?Form $form = null;
 
-    /**
-     * 这个字段实际也可能由前端生成
-     * 前端生成的话，那么跳题配置就可以由前端去控制
-     * TODO 前端生成的话，需要防止前端乱传东西，确保必须是一个随机字符串.
-     */
     #[Groups(['restful_read', 'admin_curd'])]
     #[ORM\Column(type: Types::STRING, length: 120, options: ['comment' => '序列号'])]
-    private ?string $sn = '';
+    private string $sn = '';
 
     #[Groups(['restful_read', 'admin_curd'])]
     #[ORM\Column(type: Types::STRING, length: 100, enumType: FieldType::class, options: ['comment' => '类型'])]
@@ -97,32 +76,23 @@ class Field implements \Stringable, PlainArrayInterface, ApiArrayInterface
 
     #[Groups(['restful_read', 'admin_curd'])]
     #[ORM\Column(type: Types::STRING, length: 255, options: ['comment' => '标题'])]
-    private ?string $title = '';
+    private string $title = '';
 
     #[Groups(['restful_read', 'admin_curd'])]
     #[ORM\Column(type: Types::STRING, length: 255, nullable: true, options: ['comment' => '提示文本'])]
-    private ?string $placeholder = '';
+    private string $placeholder = '';
 
-    #[ImagePickerField]
     #[Groups(['restful_read', 'admin_curd'])]
     #[ORM\Column(type: Types::STRING, length: 255, nullable: true, options: ['comment' => '背景图'])]
     private ?string $bgImage = null;
 
     /**
-     * 不是所有题型都有选项的.
-     *
-     * @DynamicFieldSet()
-     *
      * @var Collection<Option>
      */
     #[Groups(['restful_read', 'admin_curd'])]
     #[ORM\OneToMany(mappedBy: 'field', targetEntity: Option::class, cascade: ['persist'], fetch: 'EXTRA_LAZY', orphanRemoval: true)]
     private Collection $options;
 
-    /**
-     * @BraftEditor()
-     */
-    #[RichTextField]
     #[Groups(['restful_read', 'admin_curd'])]
     #[ORM\Column(type: Types::TEXT, nullable: true, options: ['comment' => '描述'])]
     private ?string $description = null;
@@ -150,41 +120,18 @@ class Field implements \Stringable, PlainArrayInterface, ApiArrayInterface
 
     public function __toString(): string
     {
-        if (!$this->getId()) {
+        if (null === $this->getId()) {
             return '';
         }
 
         $str = "{$this->getType()->getLabel()} {$this->getTitle()}";
-        if ($this->getShowExpression()) {
+        if (null !== $this->getShowExpression()) {
             $str = "【如果 {$this->getShowExpression()}】{$str}";
         }
 
         return "{$this->getSn()}.{$str}";
     }
 
-    public function setCreatedBy(?string $createdBy): self
-    {
-        $this->createdBy = $createdBy;
-
-        return $this;
-    }
-
-    public function getCreatedBy(): ?string
-    {
-        return $this->createdBy;
-    }
-
-    public function setUpdatedBy(?string $updatedBy): self
-    {
-        $this->updatedBy = $updatedBy;
-
-        return $this;
-    }
-
-    public function getUpdatedBy(): ?string
-    {
-        return $this->updatedBy;
-    }
 
     public function isValid(): ?bool
     {
@@ -210,7 +157,7 @@ class Field implements \Stringable, PlainArrayInterface, ApiArrayInterface
         return $this;
     }
 
-    public function getTitle(): ?string
+    public function getTitle(): string
     {
         return $this->title;
     }
@@ -276,7 +223,7 @@ class Field implements \Stringable, PlainArrayInterface, ApiArrayInterface
         return $this;
     }
 
-    public function getSn(): ?string
+    public function getSn(): string
     {
         return $this->sn;
     }
@@ -324,12 +271,12 @@ class Field implements \Stringable, PlainArrayInterface, ApiArrayInterface
         return $this;
     }
 
-    public function getPlaceholder(): ?string
+    public function getPlaceholder(): string
     {
         return $this->placeholder;
     }
 
-    public function setPlaceholder(?string $placeholder): self
+    public function setPlaceholder(string $placeholder): self
     {
         $this->placeholder = $placeholder;
 
