@@ -27,23 +27,23 @@ use Tourze\UserIDBundle\Model\SystemUser;
 use Yiisoft\Arrays\ArrayHelper;
 use Yiisoft\Json\Json;
 
-#[IsGranted('IS_AUTHENTICATED_FULLY')]
-#[MethodDoc('一次性提交完整的答题记录')]
-#[MethodTag('动态表单')]
-#[MethodExpose('SubmitDiyFormFullRecord')]
+#[IsGranted(attribute: 'IS_AUTHENTICATED_FULLY')]
+#[MethodDoc(summary: '一次性提交完整的答题记录')]
+#[MethodTag(name: '动态表单')]
+#[MethodExpose(method: 'SubmitDiyFormFullRecord')]
 #[Log]
 class SubmitDiyFormFullRecord extends LockableProcedure
 {
-    #[MethodParam('表单ID')]
+    #[MethodParam(description: '表单ID')]
     public string $formId;
 
-    #[MethodParam('提交数据')]
+    #[MethodParam(description: '提交数据')]
     public array $data;
 
-    #[MethodParam('开始答题时间')]
+    #[MethodParam(description: '开始答题时间')]
     public ?string $startTime = null;
 
-    #[MethodParam('邀请人信息')]
+    #[MethodParam(description: '邀请人信息')]
     public ?string $inviter = null;
 
     public function __construct(
@@ -138,7 +138,7 @@ class SubmitDiyFormFullRecord extends LockableProcedure
         $event = new SubmitDiyFormFullRecordEvent();
         $event->setRecord($record);
         $event->setSender($this->security->getUser());
-        $event->setReceiver($record->getInviter() ?: SystemUser::instance());
+        $event->setReceiver($record->getInviter() ?? SystemUser::instance());
         $event->setJsonRpcResult([
             '__message' => '提交成功',
             'record' => [

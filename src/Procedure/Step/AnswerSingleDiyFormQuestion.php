@@ -22,26 +22,26 @@ use Tourze\JsonRPCLockBundle\Procedure\LockableProcedure;
 use Tourze\JsonRPCLogBundle\Attribute\Log;
 use Yiisoft\Json\Json;
 
-#[MethodDoc('提交单条答题信息')]
-#[MethodTag('动态表单')]
-#[MethodExpose('AnswerSingleDiyFormQuestion')]
-#[IsGranted('IS_AUTHENTICATED_FULLY')]
+#[MethodDoc(summary: '提交单条答题信息')]
+#[MethodTag(name: '动态表单')]
+#[MethodExpose(method: 'AnswerSingleDiyFormQuestion')]
+#[IsGranted(attribute: 'IS_AUTHENTICATED_FULLY')]
 #[Log]
 class AnswerSingleDiyFormQuestion extends LockableProcedure
 {
-    #[MethodParam('表单ID')]
+    #[MethodParam(description: '表单ID')]
     public string $formId = '2';
 
-    #[MethodParam('记录ID')]
+    #[MethodParam(description: '记录ID')]
     public int $recordId;
 
-    #[MethodParam('题目/字段ID，如果是希望拿第一题，那这里可以不传入')]
+    #[MethodParam(description: '题目/字段ID，如果是希望拿第一题，那这里可以不传入')]
     public int $fieldId;
 
-    #[MethodParam('输入/选择值，如果是希望拿第一题，那这里可以不传入')]
+    #[MethodParam(description: '输入/选择值，如果是希望拿第一题，那这里可以不传入')]
     public string|array|int $input = '';
 
-    #[MethodParam('是否跳过这个题目，跳过的话input可以不传入')]
+    #[MethodParam(description: '是否跳过这个题目，跳过的话input可以不传入')]
     public bool $skip = false;
 
     public function __construct(

@@ -23,14 +23,14 @@ use Tourze\JsonRPC\Core\Attribute\MethodTag;
 use Tourze\JsonRPC\Core\Exception\ApiException;
 use Tourze\JsonRPC\Core\Procedure\BaseProcedure;
 
-#[IsGranted('IS_AUTHENTICATED_FULLY')]
-#[MethodDoc('获取用户的表单提交记录')]
-#[MethodTag('动态表单')]
-#[MethodExpose('GetDiyFormRecordDetail')]
-#[WithMonologChannel('procedure')]
+#[IsGranted(attribute: 'IS_AUTHENTICATED_FULLY')]
+#[MethodDoc(summary: '获取用户的表单提交记录')]
+#[MethodTag(name: '动态表单')]
+#[MethodExpose(method: 'GetDiyFormRecordDetail')]
+#[WithMonologChannel(channel: 'procedure')]
 class GetDiyFormRecordDetail extends BaseProcedure
 {
-    #[MethodParam('记录ID')]
+    #[MethodParam(description: '记录ID')]
     public string $recordId;
 
     public function __construct(

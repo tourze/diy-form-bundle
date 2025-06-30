@@ -30,7 +30,7 @@ class Record implements \Stringable
     #[ORM\Column(type: Types::INTEGER, options: ['comment' => 'ID'])]
     private ?int $id = 0;
 
-    #[Groups(['restful_read'])]
+    #[Groups(groups: ['restful_read'])]
     #[Ignore]
     #[ORM\ManyToOne(targetEntity: Form::class, inversedBy: 'records')]
     #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
@@ -47,15 +47,15 @@ class Record implements \Stringable
     private ?UserInterface $user = null;
 
     #[IndexColumn]
-    #[Groups(['restful_read'])]
+    #[Groups(groups: ['restful_read'])]
     #[ORM\Column(type: Types::BOOLEAN, nullable: true, options: ['comment' => '是否完成'])]
     private ?bool $finished = null;
 
-    #[Groups(['restful_read'])]
+    #[Groups(groups: ['restful_read'])]
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, options: ['comment' => '开始时间'])]
     private ?\DateTimeImmutable $startTime = null;
 
-    #[Groups(['restful_read'])]
+    #[Groups(groups: ['restful_read'])]
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true, options: ['comment' => '完成时间'])]
     private ?\DateTimeImmutable $finishTime = null;
 
@@ -209,7 +209,7 @@ class Record implements \Stringable
     /**
      * @return array|Data[]
      */
-    #[Groups(['restful_read'])]
+    #[Groups(groups: ['restful_read'])]
     public function getDataList(): array
     {
         $result = [];

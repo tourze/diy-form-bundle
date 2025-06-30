@@ -14,14 +14,14 @@ use Tourze\JsonRPC\Core\Exception\ApiException;
 use Tourze\JsonRPCLockBundle\Procedure\LockableProcedure;
 use Tourze\JsonRPCLogBundle\Attribute\Log;
 
-#[IsGranted('IS_AUTHENTICATED_FULLY')]
-#[MethodDoc('删除用户的表单记录')]
-#[MethodTag('动态表单')]
-#[MethodExpose('DeleteDiyFormRecord')]
+#[IsGranted(attribute: 'IS_AUTHENTICATED_FULLY')]
+#[MethodDoc(summary: '删除用户的表单记录')]
+#[MethodTag(name: '动态表单')]
+#[MethodExpose(method: 'DeleteDiyFormRecord')]
 #[Log]
 class DeleteDiyFormRecord extends LockableProcedure
 {
-    #[MethodParam('记录ID')]
+    #[MethodParam(description: '记录ID')]
     public string $recordId;
 
     public function __construct(

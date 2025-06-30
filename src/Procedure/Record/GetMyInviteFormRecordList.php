@@ -20,15 +20,15 @@ use Tourze\JsonRPC\Core\Procedure\BaseProcedure;
 use Tourze\JsonRPCPaginatorBundle\Procedure\PaginatorTrait;
 use Tourze\UserAvatarBundle\Service\AvatarServiceInterface;
 
-#[IsGranted('IS_AUTHENTICATED_FULLY')]
-#[MethodDoc('获取我邀请过来填写的表单列表')]
-#[MethodTag('动态表单')]
-#[MethodExpose('GetMyInviteFormRecordList')]
+#[IsGranted(attribute: 'IS_AUTHENTICATED_FULLY')]
+#[MethodDoc(summary: '获取我邀请过来填写的表单列表')]
+#[MethodTag(name: '动态表单')]
+#[MethodExpose(method: 'GetMyInviteFormRecordList')]
 class GetMyInviteFormRecordList extends BaseProcedure
 {
     use PaginatorTrait;
 
-    #[MethodParam('表单ID')]
+    #[MethodParam(description: '表单ID')]
     public ?string $formId = null;
 
     public function __construct(

@@ -221,7 +221,8 @@ class FormTest extends TestCase
             ->willReturn($record);
         
         // 模拟getForm方法，让它返回不同的form对象，这样removeRecord就不会尝试调用setForm(null)
-        $otherForm = $this->createMock(Form::class);
+        $otherForm = new Form();
+        $otherForm->setTitle('其他表单');
         $record->expects($this->any())
             ->method('getForm')
             ->willReturn($otherForm);

@@ -17,14 +17,14 @@ use Tourze\JsonRPC\Core\Exception\ApiException;
 use Tourze\JsonRPCLockBundle\Procedure\LockableProcedure;
 use Tourze\JsonRPCLogBundle\Attribute\Log;
 
-#[MethodDoc('消费者开始答题前，需要先创一个答题记录')]
-#[MethodTag('动态表单')]
-#[MethodExpose('CreateDiyFormRecord')]
+#[MethodDoc(summary: '消费者开始答题前，需要先创一个答题记录')]
+#[MethodTag(name: '动态表单')]
+#[MethodExpose(method: 'CreateDiyFormRecord')]
 #[Log]
-#[IsGranted('IS_AUTHENTICATED_FULLY')]
+#[IsGranted(attribute: 'IS_AUTHENTICATED_FULLY')]
 class CreateDiyFormRecord extends LockableProcedure
 {
-    #[MethodParam('表单ID')]
+    #[MethodParam(description: '表单ID')]
     public int $formId = 2;
 
     public function __construct(

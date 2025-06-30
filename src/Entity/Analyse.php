@@ -14,6 +14,7 @@ use Tourze\DoctrineIndexedBundle\Attribute\IndexColumn;
 use Tourze\DoctrineIpBundle\Attribute\CreateIpColumn;
 use Tourze\DoctrineIpBundle\Attribute\UpdateIpColumn;
 use Tourze\DoctrineSnowflakeBundle\Service\SnowflakeIdGenerator;
+use Tourze\DoctrineSnowflakeBundle\Traits\SnowflakeKeyAware;
 use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
 use Tourze\DoctrineTrackBundle\Attribute\TrackColumn;
 use Tourze\DoctrineUserBundle\Traits\BlameableAware;
@@ -24,6 +25,7 @@ class Analyse implements \Stringable, ApiArrayInterface
 {
     use TimestampableAware;
     use BlameableAware;
+    use SnowflakeKeyAware;
 
     #[ORM\Column(type: Types::TEXT, nullable: true, options: ['comment' => '备注', 'default' => ''])]
     private ?string $remark = null;
@@ -63,12 +65,6 @@ class Analyse implements \Stringable, ApiArrayInterface
         ];
     }
 
-    #[ORM\Id]
-    #[ORM\GeneratedValue(strategy: 'CUSTOM')]
-    #[ORM\CustomIdGenerator(SnowflakeIdGenerator::class)]
-    #[ORM\Column(type: Types::BIGINT, nullable: false, options: ['comment' => 'ID'])]
-    private ?string $id = null;
-
 
     #[IndexColumn]
     #[TrackColumn]
@@ -80,22 +76,22 @@ class Analyse implements \Stringable, ApiArrayInterface
     #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
     private ?Form $form = null;
 
-    #[Groups('restful_read')]
+    #[Groups(groups: ['restful_read'])]
     #[ORM\Column(type: Types::STRING, length: 200, nullable: true, options: ['comment' => '分类', 'default' => '默认'])]
     private ?string $category = null;
 
-    #[Groups('restful_read')]
+    #[Groups(groups: ['restful_read'])]
     #[ORM\Column(type: Types::STRING, length: 200, options: ['comment' => '标题'])]
     private string $title = '';
 
     #[ORM\Column(type: Types::STRING, length: 2000, options: ['comment' => '判断条件'])]
     private string $rule = '';
 
-    #[Groups('restful_read')]
+    #[Groups(groups: ['restful_read'])]
     #[ORM\Column(type: Types::TEXT, options: ['comment' => '结果'])]
     private string $result = '';
 
-    #[Groups('restful_read')]
+    #[Groups(groups: ['restful_read'])]
     #[ORM\Column(type: Types::STRING, length: 255, nullable: true, options: ['comment' => '缩略图'])]
     private ?string $thumb = null;
 
@@ -114,11 +110,6 @@ class Analyse implements \Stringable, ApiArrayInterface
         }
 
         return "#{$this->getId()}[{$this->getCategory()}] {$this->getTitle()}";
-    }
-
-    public function getId(): ?string
-    {
-        return $this->id;
     }
 
 

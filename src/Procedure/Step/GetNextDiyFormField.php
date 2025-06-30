@@ -25,18 +25,18 @@ use Tourze\JsonRPC\Core\Exception\ApiException;
 use Tourze\JsonRPCLockBundle\Procedure\LockableProcedure;
 use Tourze\JsonRPCLogBundle\Attribute\Log;
 
-#[MethodDoc('获取下一题信息')]
-#[MethodTag('动态表单')]
-#[MethodExpose('GetNextDiyFormField')]
-#[IsGranted('IS_AUTHENTICATED_FULLY')]
+#[MethodDoc(summary: '获取下一题信息')]
+#[MethodTag(name: '动态表单')]
+#[MethodExpose(method: 'GetNextDiyFormField')]
+#[IsGranted(attribute: 'IS_AUTHENTICATED_FULLY')]
 #[Log]
-#[WithMonologChannel('procedure')]
+#[WithMonologChannel(channel: 'procedure')]
 class GetNextDiyFormField extends LockableProcedure
 {
-    #[MethodParam('表单ID')]
+    #[MethodParam(description: '表单ID')]
     public int $formId = 2;
 
-    #[MethodParam('记录ID')]
+    #[MethodParam(description: '记录ID')]
     public int $recordId;
 
     public function __construct(

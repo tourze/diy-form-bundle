@@ -11,7 +11,7 @@ use Symfony\Component\Routing\Attribute\Route;
 
 class SqlController extends AbstractController
 {
-    #[Route('/diy-form-sql/{id}', name: 'diy-model-sql')]
+    #[Route(path: '/diy-form-sql/{id}', name: 'diy-model-sql')]
     public function __invoke(string $id, FormRepository $formRepository, Connection $connection): Response
     {
         $form = $formRepository->findOneBy([

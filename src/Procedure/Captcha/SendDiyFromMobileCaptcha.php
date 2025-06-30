@@ -21,16 +21,16 @@ use Tourze\JsonRPCLogBundle\Attribute\Log;
 use Tourze\TextManageBundle\Service\TextFormatter;
 use Tourze\UserIDBundle\Model\SystemUser;
 
-#[MethodTag('动态表单')]
-#[MethodDoc('发送短信验证码')]
-#[MethodExpose('SendDiyFromMobileCaptcha')]
+#[MethodTag(name: '动态表单')]
+#[MethodDoc(summary: '发送短信验证码')]
+#[MethodExpose(method: 'SendDiyFromMobileCaptcha')]
 #[Log]
 class SendDiyFromMobileCaptcha extends LockableProcedure
 {
-    #[MethodParam('表单ID')]
+    #[MethodParam(description: '表单ID')]
     public string $formId;
 
-    #[MethodParam('手机号码')]
+    #[MethodParam(description: '手机号码')]
     public string $phoneNumber;
 
     public function __construct(

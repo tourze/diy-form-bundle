@@ -39,7 +39,7 @@ class SendLog implements \Stringable
 
     public function __toString(): string
     {
-        if (null === $this->getId()) {
+        if (null === $this->getId() || 0 === $this->getId()) {
             return '';
         }
 

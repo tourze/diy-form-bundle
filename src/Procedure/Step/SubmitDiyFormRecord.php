@@ -19,17 +19,17 @@ use Tourze\JsonRPC\Core\Exception\ApiException;
 use Tourze\JsonRPCLockBundle\Procedure\LockableProcedure;
 use Tourze\JsonRPCLogBundle\Attribute\Log;
 
-#[MethodDoc('保存表单数据', '当GetNextDiyFormField返回hasNext=false时，我们就可以调用这个接口来提交数据')]
-#[MethodTag('动态表单')]
-#[MethodExpose('SubmitDiyFormRecord')]
-#[IsGranted('IS_AUTHENTICATED_FULLY')]
+#[MethodDoc(summary: '保存表单数据', description: '当GetNextDiyFormField返回hasNext=false时，我们就可以调用这个接口来提交数据')]
+#[MethodTag(name: '动态表单')]
+#[MethodExpose(method: 'SubmitDiyFormRecord')]
+#[IsGranted(attribute: 'IS_AUTHENTICATED_FULLY')]
 #[Log]
 class SubmitDiyFormRecord extends LockableProcedure
 {
-    #[MethodParam('表单ID')]
+    #[MethodParam(description: '表单ID')]
     public int $formId = 2;
 
-    #[MethodParam('记录ID，通过CreateDiyFormRecord接口获得')]
+    #[MethodParam(description: '记录ID，通过CreateDiyFormRecord接口获得')]
     public int $recordId;
 
     public function __construct(

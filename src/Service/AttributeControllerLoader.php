@@ -25,7 +25,7 @@ class AttributeControllerLoader extends AbstractController
         return $collection;
     }
 
-    #[Route('/diy-form-bundle')]
+    #[Route(path: '/diy-form-bundle')]
     public function __invoke(): void
     {
         // This service exists to satisfy PHPStan requirements for controllers with attributes

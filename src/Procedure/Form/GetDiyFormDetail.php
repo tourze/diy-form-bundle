@@ -11,12 +11,12 @@ use Tourze\JsonRPC\Core\Attribute\MethodTag;
 use Tourze\JsonRPC\Core\Exception\ApiException;
 use Tourze\JsonRPC\Core\Procedure\BaseProcedure;
 
-#[MethodTag('动态表单')]
-#[MethodDoc('获取单个表单的详细信息')]
-#[MethodExpose('GetDiyFormDetail')]
+#[MethodTag(name: '动态表单')]
+#[MethodDoc(summary: '获取单个表单的详细信息')]
+#[MethodExpose(method: 'GetDiyFormDetail')]
 class GetDiyFormDetail extends BaseProcedure
 {
-    #[MethodParam('表单ID')]
+    #[MethodParam(description: '表单ID')]
     public string $formId = '2';
 
     public function __construct(private readonly FormRepository $formRepository)
