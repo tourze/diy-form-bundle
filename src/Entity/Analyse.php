@@ -1,24 +1,26 @@
 <?php
 
+declare(strict_types=1);
+
 namespace DiyFormBundle\Entity;
 
-use AntdCpBundle\Builder\Field\BraftEditor;
-use AntdCpBundle\Builder\Field\LongTextField;
 use DiyFormBundle\Repository\AnalyseRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Attribute\Groups;
 use Symfony\Component\Serializer\Attribute\Ignore;
+use Symfony\Component\Validator\Constraints as Assert;
 use Tourze\Arrayable\ApiArrayInterface;
 use Tourze\DoctrineIndexedBundle\Attribute\IndexColumn;
-use Tourze\DoctrineIpBundle\Attribute\CreateIpColumn;
-use Tourze\DoctrineIpBundle\Attribute\UpdateIpColumn;
-use Tourze\DoctrineSnowflakeBundle\Service\SnowflakeIdGenerator;
+use Tourze\DoctrineIpBundle\Traits\IpTraceableAware;
 use Tourze\DoctrineSnowflakeBundle\Traits\SnowflakeKeyAware;
 use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
 use Tourze\DoctrineTrackBundle\Attribute\TrackColumn;
 use Tourze\DoctrineUserBundle\Traits\BlameableAware;
 
+/**
+ * @implements ApiArrayInterface<string, mixed>
+ */
 #[ORM\Entity(repositoryClass: AnalyseRepository::class)]
 #[ORM\Table(name: 'diy_form_analyse', options: ['comment' => '分析规则'])]
 class Analyse implements \Stringable, ApiArrayInterface
@@ -26,7 +28,9 @@ class Analyse implements \Stringable, ApiArrayInterface
     use TimestampableAware;
     use BlameableAware;
     use SnowflakeKeyAware;
+    use IpTraceableAware;
 
+    #[Assert\Length(max: 65535)]
     #[ORM\Column(type: Types::TEXT, nullable: true, options: ['comment' => '备注', 'default' => ''])]
     private ?string $remark = null;
 
@@ -35,13 +39,12 @@ class Analyse implements \Stringable, ApiArrayInterface
         return $this->remark;
     }
 
-    public function setRemark(?string $remark): self
+    public function setRemark(?string $remark): void
     {
         $this->remark = $remark;
-
-        return $this;
     }
 
+    #[Assert\PositiveOrZero]
     #[IndexColumn]
     #[ORM\Column(type: Types::INTEGER, nullable: true, options: ['default' => '0', 'comment' => '次序值'])]
     private ?int $sortNumber = 0;
@@ -51,13 +54,14 @@ class Analyse implements \Stringable, ApiArrayInterface
         return $this->sortNumber;
     }
 
-    public function setSortNumber(?int $sortNumber): self
+    public function setSortNumber(?int $sortNumber): void
     {
         $this->sortNumber = $sortNumber;
-
-        return $this;
     }
 
+    /**
+     * @return array<string, int|null>
+     */
     public function retrieveSortableArray(): array
     {
         return [
@@ -65,7 +69,7 @@ class Analyse implements \Stringable, ApiArrayInterface
         ];
     }
 
-
+    #[Assert\Type(type: 'bool')]
     #[IndexColumn]
     #[TrackColumn]
     #[ORM\Column(type: Types::BOOLEAN, nullable: true, options: ['comment' => '有效', 'default' => 0])]
@@ -76,32 +80,32 @@ class Analyse implements \Stringable, ApiArrayInterface
     #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
     private ?Form $form = null;
 
+    #[Assert\Length(max: 200)]
     #[Groups(groups: ['restful_read'])]
     #[ORM\Column(type: Types::STRING, length: 200, nullable: true, options: ['comment' => '分类', 'default' => '默认'])]
     private ?string $category = null;
 
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 200)]
     #[Groups(groups: ['restful_read'])]
     #[ORM\Column(type: Types::STRING, length: 200, options: ['comment' => '标题'])]
     private string $title = '';
 
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 2000)]
     #[ORM\Column(type: Types::STRING, length: 2000, options: ['comment' => '判断条件'])]
     private string $rule = '';
 
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 65535)]
     #[Groups(groups: ['restful_read'])]
     #[ORM\Column(type: Types::TEXT, options: ['comment' => '结果'])]
     private string $result = '';
 
+    #[Assert\Length(max: 255)]
     #[Groups(groups: ['restful_read'])]
     #[ORM\Column(type: Types::STRING, length: 255, nullable: true, options: ['comment' => '缩略图'])]
     private ?string $thumb = null;
-
-    #[CreateIpColumn]
-    #[ORM\Column(type: Types::STRING, length: 128, nullable: true, options: ['comment' => '创建者IP'])]
-    private ?string $createdFromIp = null;
-
-    #[UpdateIpColumn]
-    #[ORM\Column(type: Types::STRING, length: 128, nullable: true, options: ['comment' => '更新者IP'])]
-    private ?string $updatedFromIp = null;
 
     public function __toString(): string
     {
@@ -109,20 +113,17 @@ class Analyse implements \Stringable, ApiArrayInterface
             return '';
         }
 
-        return "#{$this->getId()}[{$this->getCategory()}] {$this->getTitle()}";
+        return "#{$this->getId()}[" . ($this->getCategory() ?? '') . "] {$this->getTitle()}";
     }
-
 
     public function isValid(): ?bool
     {
         return $this->valid;
     }
 
-    public function setValid(?bool $valid): self
+    public function setValid(?bool $valid): void
     {
         $this->valid = $valid;
-
-        return $this;
     }
 
     public function getForm(): ?Form
@@ -130,11 +131,9 @@ class Analyse implements \Stringable, ApiArrayInterface
         return $this->form;
     }
 
-    public function setForm(?Form $form): self
+    public function setForm(?Form $form): void
     {
         $this->form = $form;
-
-        return $this;
     }
 
     public function getRule(): string
@@ -142,11 +141,9 @@ class Analyse implements \Stringable, ApiArrayInterface
         return $this->rule;
     }
 
-    public function setRule(string $rule): self
+    public function setRule(string $rule): void
     {
         $this->rule = $rule;
-
-        return $this;
     }
 
     public function getResult(): string
@@ -154,11 +151,9 @@ class Analyse implements \Stringable, ApiArrayInterface
         return $this->result;
     }
 
-    public function setResult(string $result): self
+    public function setResult(string $result): void
     {
         $this->result = $result;
-
-        return $this;
     }
 
     public function getTitle(): string
@@ -166,11 +161,9 @@ class Analyse implements \Stringable, ApiArrayInterface
         return $this->title;
     }
 
-    public function setTitle(string $title): self
+    public function setTitle(string $title): void
     {
         $this->title = $title;
-
-        return $this;
     }
 
     public function getCategory(): ?string
@@ -178,11 +171,9 @@ class Analyse implements \Stringable, ApiArrayInterface
         return $this->category;
     }
 
-    public function setCategory(?string $category): self
+    public function setCategory(?string $category): void
     {
         $this->category = $category;
-
-        return $this;
     }
 
     public function getThumb(): ?string
@@ -190,37 +181,14 @@ class Analyse implements \Stringable, ApiArrayInterface
         return $this->thumb;
     }
 
-    public function setThumb(?string $thumb): self
+    public function setThumb(?string $thumb): void
     {
         $this->thumb = $thumb;
-
-        return $this;
     }
 
-    public function getCreatedFromIp(): ?string
-    {
-        return $this->createdFromIp;
-    }
-
-    public function setCreatedFromIp(?string $createdFromIp): self
-    {
-        $this->createdFromIp = $createdFromIp;
-
-        return $this;
-    }
-
-    public function getUpdatedFromIp(): ?string
-    {
-        return $this->updatedFromIp;
-    }
-
-    public function setUpdatedFromIp(?string $updatedFromIp): self
-    {
-        $this->updatedFromIp = $updatedFromIp;
-
-        return $this;
-    }
-
+    /**
+     * @return array<string, mixed>
+     */
     public function retrieveApiArray(): array
     {
         return [

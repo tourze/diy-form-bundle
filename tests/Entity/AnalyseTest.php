@@ -1,78 +1,64 @@
 <?php
 
+declare(strict_types=1);
+
 namespace DiyFormBundle\Tests\Entity;
 
 use DiyFormBundle\Entity\Analyse;
 use DiyFormBundle\Entity\Form;
-use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
+use Tourze\PHPUnitDoctrineEntity\AbstractEntityTestCase;
 
-class AnalyseTest extends TestCase
+/**
+ * @internal
+ */
+#[CoversClass(Analyse::class)]
+final class AnalyseTest extends AbstractEntityTestCase
 {
-    private Analyse $analyse;
-
-    protected function setUp(): void
+    protected function createEntity(): object
     {
-        $this->analyse = new Analyse();
+        return new Analyse();
     }
 
-    public function testId_初始值为null()
+    /**
+     * @return iterable<array{0: string, 1: mixed}>
+     */
+    public static function propertiesProvider(): iterable
     {
-        $this->assertNull($this->analyse->getId());
+        yield 'remark' => ['remark', '测试备注'];
+        yield 'sortNumber' => ['sortNumber', 10];
+        yield 'title' => ['title', '测试分析规则'];
+        yield 'valid' => ['valid', true];
+        yield 'category' => ['category', '测试分类'];
     }
 
-    public function testRemark_可以设置和获取()
+    public function testForm关联(): void
     {
-        $this->analyse->setRemark('测试备注');
-        $this->assertEquals('测试备注', $this->analyse->getRemark());
-    }
-
-    public function testSortNumber_初始值为0()
-    {
-        $this->assertEquals(0, $this->analyse->getSortNumber());
-    }
-
-    public function testSortNumber_可以设置和获取()
-    {
-        $this->analyse->setSortNumber(10);
-        $this->assertEquals(10, $this->analyse->getSortNumber());
-    }
-
-    public function testTitle_可以设置和获取()
-    {
-        $this->analyse->setTitle('测试分析规则');
-        $this->assertEquals('测试分析规则', $this->analyse->getTitle());
-    }
-
-    public function testValid_默认值为false()
-    {
-        $this->assertFalse($this->analyse->isValid());
-    }
-
-    public function testValid_可以设置和获取()
-    {
-        $this->analyse->setValid(false);
-        $this->assertFalse($this->analyse->isValid());
-    }
-
-    public function testForm_可以设置和获取()
-    {
+        $analyse = new Analyse();
         $form = new Form();
-        $this->analyse->setForm($form);
-        $this->assertSame($form, $this->analyse->getForm());
+        $analyse->setForm($form);
+
+        $this->assertSame($form, $analyse->getForm());
     }
 
-    public function test__toString_返回标题()
+    public function testToString返回标题(): void
     {
-        $this->analyse->setId('123');
-        $this->analyse->setTitle('测试分析');
-        $this->analyse->setCategory('测试分类');
-        $this->assertEquals('#123[测试分类] 测试分析', (string) $this->analyse);
+        $analyse = new Analyse();
+        $analyse->setTitle('测试分析');
+        $analyse->setCategory('测试分类');
+
+        // 使用反射设置私有属性id
+        $reflectionClass = new \ReflectionClass(Analyse::class);
+        $property = $reflectionClass->getProperty('id');
+        $property->setAccessible(true);
+        $property->setValue($analyse, 123);
+
+        $this->assertEquals('#123[测试分类] 测试分析', (string) $analyse);
     }
 
-    public function test__toString_ID为null时返回空字符串()
+    public function testToString无标题时返回空字符串(): void
     {
-        $this->analyse->setTitle('测试分析');
-        $this->assertEquals('', (string) $this->analyse);
+        $analyse = new Analyse();
+        $this->assertEquals('', (string) $analyse);
     }
-
 }

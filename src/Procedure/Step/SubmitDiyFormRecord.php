@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace DiyFormBundle\Procedure\Step;
 
 use Carbon\CarbonImmutable;
@@ -62,12 +64,17 @@ class SubmitDiyFormRecord extends LockableProcedure
 
         $record->setFinished(true);
         $record->setFinishTime(CarbonImmutable::now());
-        $record->setAnswerTags($this->tagCalculator->findByRecord($record));
+        // 将 array<string> 转换为 array<string, mixed>
+        $answerTags = $this->tagCalculator->findByRecord($record);
+        $record->setAnswerTags(array_fill_keys($answerTags, true));
         $this->entityManager->persist($record);
         $this->entityManager->flush();
 
         $event = new SubmitRecordEvent();
-        $event->setUser($this->security->getUser());
+        $user = $this->security->getUser();
+        if (null !== $user) {
+            $event->setUser($user);
+        }
         $event->setRecord($record);
         $this->eventDispatcher->dispatch($event);
 

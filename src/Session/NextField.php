@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace DiyFormBundle\Session;
 
 use DiyFormBundle\Entity\Field;
@@ -17,10 +19,13 @@ class NextField
     private Field $field;
 
     /**
-     * @var Option[] 最终可以选择的选项
+     * @var array<int, Option> 最终可以选择的选项
      */
     private array $options = [];
 
+    /**
+     * @var array<string>
+     */
     private array $answerTags = [];
 
     public function getField(): Field
@@ -34,7 +39,7 @@ class NextField
     }
 
     /**
-     * @return Option[]
+     * @return array<int, Option>
      */
     public function getOptions(): array
     {
@@ -42,7 +47,7 @@ class NextField
     }
 
     /**
-     * @param Option[] $options
+     * @param array<int, Option> $options
      */
     public function setOptions(array $options): void
     {
@@ -74,11 +79,17 @@ class NextField
         $this->showBack = $showBack;
     }
 
+    /**
+     * @return array<string>
+     */
     public function getAnswerTags(): array
     {
         return $this->answerTags;
     }
 
+    /**
+     * @param array<string> $answerTags
+     */
     public function setAnswerTags(array $answerTags): void
     {
         $this->answerTags = $answerTags;

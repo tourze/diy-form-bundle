@@ -1,3 +1,0 @@
-diy_form_controllers:
-  resource: '../../Controller/'
-  type: attribute

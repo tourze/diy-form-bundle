@@ -1,67 +1,51 @@
 <?php
 
+declare(strict_types=1);
+
 namespace DiyFormBundle\Tests\Entity;
 
 use DiyFormBundle\Entity\SmsDsn;
-use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
+use Tourze\PHPUnitDoctrineEntity\AbstractEntityTestCase;
 
-class SmsDsnTest extends TestCase
+/**
+ * @internal
+ */
+#[CoversClass(SmsDsn::class)]
+final class SmsDsnTest extends AbstractEntityTestCase
 {
-    private SmsDsn $smsDsn;
-
-    protected function setUp(): void
+    protected function createEntity(): object
     {
-        $this->smsDsn = new SmsDsn();
+        return new SmsDsn();
     }
 
-    public function testId_初始值为null()
+    /**
+     * @return iterable<array{0: string, 1: mixed}>
+     */
+    public static function propertiesProvider(): iterable
     {
-        $this->assertNull($this->smsDsn->getId());
+        yield 'valid' => ['valid', true];
+        yield 'name' => ['name', '阿里云短信'];
+        yield 'dsn' => ['dsn', 'aliyun://key:secret@default'];
+        yield 'weight' => ['weight', 100];
     }
 
-    public function testName_可以设置和获取()
+    public function testToString返回名称和状态(): void
     {
-        $this->smsDsn->setName('阿里云短信');
-        $this->assertEquals('阿里云短信', $this->smsDsn->getName());
-    }
-
-    public function testDsn_可以设置和获取()
-    {
-        $this->smsDsn->setDsn('aliyun://key:secret@default');
-        $this->assertEquals('aliyun://key:secret@default', $this->smsDsn->getDsn());
-    }
-
-    public function testValid_默认值为false()
-    {
-        $this->assertFalse($this->smsDsn->isValid());
-    }
-
-    public function testValid_可以设置和获取()
-    {
-        $this->smsDsn->setValid(true);
-        $this->assertTrue($this->smsDsn->isValid());
-    }
-
-    public function testWeight_可以设置和获取()
-    {
-        $this->smsDsn->setWeight(100);
-        $this->assertEquals(100, $this->smsDsn->getWeight());
-    }
-
-    public function test__toString_返回名称和状态()
-    {
-        $this->smsDsn->setId('123');
-        $this->smsDsn->setName('腾讯云短信');
-        $this->smsDsn->setValid(true);
-        $result = (string) $this->smsDsn;
+        $smsDsn = new SmsDsn();
+        $smsDsn->setId('123');
+        $smsDsn->setName('腾讯云短信');
+        $smsDsn->setValid(true);
+        $result = (string) $smsDsn;
         $this->assertStringContainsString('腾讯云短信', $result);
         $this->assertStringContainsString('有效', $result);
     }
 
-    public function test__toString_ID为null时返回空字符串()
+    public function testToStringID为null时返回空字符串(): void
     {
-        $this->smsDsn->setName('腾讯云短信');
-        $this->smsDsn->setValid(true);
-        $this->assertEquals('', (string) $this->smsDsn);
+        $smsDsn = new SmsDsn();
+        $smsDsn->setName('腾讯云短信');
+        $smsDsn->setValid(true);
+        $this->assertEquals('', (string) $smsDsn);
     }
 }

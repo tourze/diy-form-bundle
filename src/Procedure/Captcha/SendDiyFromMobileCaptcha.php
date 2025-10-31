@@ -1,15 +1,18 @@
 <?php
 
+declare(strict_types=1);
+
 namespace DiyFormBundle\Procedure\Captcha;
 
 use Carbon\CarbonImmutable;
+use DiyFormBundle\Entity\Form;
 use DiyFormBundle\Event\SendMobileCaptchaEvent;
 use DiyFormBundle\Notifier\Message\SmsTemplateMessage;
 use DiyFormBundle\Repository\FormRepository;
 use DiyFormBundle\Service\PhoneNumberService;
 use DiyFormBundle\Service\SmsService;
-use Psr\SimpleCache\CacheInterface;
 use Symfony\Bundle\SecurityBundle\Security;
+use Symfony\Contracts\Cache\CacheInterface;
 use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 use Tourze\JsonRPC\Core\Attribute\MethodDoc;
 use Tourze\JsonRPC\Core\Attribute\MethodExpose;
@@ -54,6 +57,11 @@ class SendDiyFromMobileCaptcha extends LockableProcedure
             throw new ApiException('找不到表单配置');
         }
 
+        // Type assertion to ensure we have the correct type
+        if (!$form instanceof Form) {
+            throw new ApiException('表单数据类型错误');
+        }
+
         $code = (string) mt_rand(100000, 999999);
 
         $event = new SendMobileCaptchaEvent();
@@ -61,7 +69,13 @@ class SendDiyFromMobileCaptcha extends LockableProcedure
         $event->setPhoneNumber($this->phoneNumber);
         $event->setCode($code);
         $event->setSender(SystemUser::instance());
-        $event->setReceiver($this->security->getUser());
+
+        // Ensure we have a valid user for the receiver
+        $currentUser = $this->security->getUser();
+        if (null === $currentUser) {
+            throw new ApiException('用户未登录，无法发送验证码');
+        }
+        $event->setReceiver($currentUser);
         try {
             $this->eventDispatcher->dispatch($event);
         } catch (\Throwable $exception) {
@@ -89,7 +103,9 @@ class SendDiyFromMobileCaptcha extends LockableProcedure
 
         // 将手机号码/表单合并成一个key存储起来
         $captchaKey = $this->phoneNumberService->buildCaptchaCacheKey($form, $this->phoneNumber);
-        $this->cache->set($captchaKey, $code, 60 * 60);
+        $this->cache->get($captchaKey, function () use ($code) {
+            return $code;
+        }, 60 * 60);
 
         return [
             '__message' => '发送成功',

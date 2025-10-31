@@ -1,11 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace DiyFormBundle\Notifier\Message;
 
 use Symfony\Component\Notifier\Message\SmsMessage;
 
 /**
- * 国内比较多用的，带模板的消息类型
+ * 国内比较多用的，带模板的消息类型.
  */
 class SmsTemplateMessage extends SmsMessage
 {
@@ -20,7 +22,7 @@ class SmsTemplateMessage extends SmsMessage
     private string $signName = '';
 
     /**
-     * @var array 短信模板变量对应的实际值
+     * @var array<string, mixed> 短信模板变量对应的实际值
      */
     private array $templateParam = [];
 
@@ -44,11 +46,17 @@ class SmsTemplateMessage extends SmsMessage
         $this->signName = $signName;
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function getTemplateParam(): array
     {
         return $this->templateParam;
     }
 
+    /**
+     * @param array<string, mixed> $templateParam
+     */
     public function setTemplateParam(array $templateParam): void
     {
         $this->templateParam = $templateParam;

@@ -1,12 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace DiyFormBundle\Entity;
 
 use DiyFormBundle\Repository\SmsDsnRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 use Tourze\DoctrineIndexedBundle\Attribute\IndexColumn;
-use Tourze\DoctrineSnowflakeBundle\Service\SnowflakeIdGenerator;
 use Tourze\DoctrineSnowflakeBundle\Traits\SnowflakeKeyAware;
 use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
 use Tourze\DoctrineTrackBundle\Attribute\TrackColumn;
@@ -20,19 +22,25 @@ class SmsDsn implements \Stringable
     use BlameableAware;
     use SnowflakeKeyAware;
 
-
+    #[Assert\Type(type: 'bool')]
     #[IndexColumn]
     #[TrackColumn]
     #[ORM\Column(type: Types::BOOLEAN, nullable: true, options: ['comment' => '有效', 'default' => 0])]
     private ?bool $valid = false;
 
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 100)]
     #[IndexColumn]
     #[ORM\Column(type: Types::STRING, length: 100, options: ['comment' => '名称'])]
     private ?string $name = null;
 
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 65535)]
     #[ORM\Column(type: Types::TEXT, options: ['comment' => 'DSN'])]
     private ?string $dsn = null;
 
+    #[Assert\NotNull]
+    #[Assert\PositiveOrZero]
     #[ORM\Column(type: Types::INTEGER, options: ['comment' => '权重'])]
     private ?int $weight = null;
 
@@ -42,21 +50,19 @@ class SmsDsn implements \Stringable
             return '';
         }
 
-        $validStr = $this->isValid() ? '有效' : '无效';
+        $validStr = true === $this->isValid() ? '有效' : '无效';
+
         return "{$this->getName()} - {$validStr}";
     }
-
 
     public function isValid(): ?bool
     {
         return $this->valid;
     }
 
-    public function setValid(?bool $valid): self
+    public function setValid(?bool $valid): void
     {
         $this->valid = $valid;
-
-        return $this;
     }
 
     public function getName(): ?string
@@ -64,11 +70,9 @@ class SmsDsn implements \Stringable
         return $this->name;
     }
 
-    public function setName(string $name): self
+    public function setName(?string $name): void
     {
         $this->name = $name;
-
-        return $this;
     }
 
     public function getDsn(): ?string
@@ -76,11 +80,9 @@ class SmsDsn implements \Stringable
         return $this->dsn;
     }
 
-    public function setDsn(string $dsn): self
+    public function setDsn(?string $dsn): void
     {
         $this->dsn = $dsn;
-
-        return $this;
     }
 
     public function getWeight(): ?int
@@ -88,10 +90,8 @@ class SmsDsn implements \Stringable
         return $this->weight;
     }
 
-    public function setWeight(int $weight): self
+    public function setWeight(?int $weight): void
     {
         $this->weight = $weight;
-
-        return $this;
     }
 }

@@ -1,12 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace DiyFormBundle\Procedure\Record;
 
 use DiyFormBundle\Entity\Record;
 use DiyFormBundle\Event\RecordFormatEvent;
 use DiyFormBundle\Repository\FormRepository;
 use DiyFormBundle\Repository\RecordRepository;
-use Doctrine\Common\Collections\Criteria;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
@@ -60,14 +61,23 @@ class GetMyInviteFormRecordList extends BaseProcedure
             $qb->setParameter('form', $form);
         }
 
-        $qb->addOrderBy('a.id', Criteria::DESC);
+        $qb->addOrderBy('a.id', 'DESC');
 
         return $this->fetchList($qb, $this->formatItem(...));
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     private function formatItem(Record $item): array
     {
         $result = $this->normalizer->normalize($item, 'array', ['groups' => 'restful_read']);
+
+        if (!is_array($result)) {
+            throw new \InvalidArgumentException('Failed to normalize record to array');
+        }
+
+        /** @var array<string, mixed> $result */
         unset($result['form']);
         $result['extraData'] = $item->getExtraData();
         $result['userInfo'] = null !== $item->getUser() ? [

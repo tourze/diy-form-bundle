@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace DiyFormBundle\Service;
 
 use DiyFormBundle\Entity\Form;

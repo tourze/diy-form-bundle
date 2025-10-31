@@ -1,8 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace DiyFormBundle\Procedure\Form;
 
 use Carbon\CarbonImmutable;
+use DiyFormBundle\Entity\Form;
 use DiyFormBundle\Repository\FormRepository;
 use Tourze\JsonRPC\Core\Attribute\MethodDoc;
 use Tourze\JsonRPC\Core\Attribute\MethodExpose;
@@ -23,6 +26,9 @@ class GetDiyFormDetail extends BaseProcedure
     {
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function execute(): array
     {
         $form = $this->formRepository->findOneBy([
@@ -33,11 +39,16 @@ class GetDiyFormDetail extends BaseProcedure
             throw new ApiException('找不到表单配置');
         }
 
+        assert($form instanceof Form);
+
         $now = CarbonImmutable::now();
-        if ($now->lessThan($form->getStartTime())) {
+        $startTime = $form->getStartTime();
+        $endTime = $form->getEndTime();
+
+        if (null !== $startTime && $now->lessThan($startTime)) {
             throw new ApiException('该表单还未开始');
         }
-        if ($now->greaterThan($form->getEndTime())) {
+        if (null !== $endTime && $now->greaterThan($endTime)) {
             throw new ApiException('该表单已结束');
         }
 

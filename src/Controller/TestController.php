@@ -1,17 +1,20 @@
 <?php
 
+declare(strict_types=1);
+
 namespace DiyFormBundle\Controller;
 
+use DiyFormBundle\Entity\Form;
 use DiyFormBundle\Repository\FormRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Attribute\Route;
 
-class TestController extends AbstractController
+final class TestController extends AbstractController
 {
     /**
-     * 获取所有可能的tag
+     * 获取所有可能的tag.
      *
      * @throws NotFoundHttpException
      */

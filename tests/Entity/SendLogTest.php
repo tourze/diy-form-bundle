@@ -1,75 +1,59 @@
 <?php
 
+declare(strict_types=1);
+
 namespace DiyFormBundle\Tests\Entity;
 
 use DiyFormBundle\Entity\SendLog;
 use DiyFormBundle\Enum\SmsReceiveEnum;
-use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
+use Tourze\PHPUnitDoctrineEntity\AbstractEntityTestCase;
 
-class SendLogTest extends TestCase
+/**
+ * @internal
+ */
+#[CoversClass(SendLog::class)]
+final class SendLogTest extends AbstractEntityTestCase
 {
-    private SendLog $sendLog;
-
-    protected function setUp(): void
+    protected function createEntity(): object
     {
-        $this->sendLog = new SendLog();
+        return new SendLog();
     }
 
-    public function testId_初始值为0()
+    /**
+     * @return iterable<array{0: string, 1: mixed}>
+     */
+    public static function propertiesProvider(): iterable
     {
-        $this->assertEquals(0, $this->sendLog->getId());
+        yield 'batchId' => ['batchId', 'batch123'];
+        yield 'mobile' => ['mobile', '13800138000'];
+        yield 'zone' => ['zone', '+86'];
+        yield 'memo' => ['memo', '退回原因'];
+        yield 'status' => ['status', SmsReceiveEnum::SENT];
     }
 
-    public function testBatchId_可以设置和获取()
+    public function testToString返回日志描述(): void
     {
-        $this->sendLog->setBatchId('batch123');
-        $this->assertEquals('batch123', $this->sendLog->getBatchId());
-    }
-
-    public function testMobile_可以设置和获取()
-    {
-        $this->sendLog->setMobile('13800138000');
-        $this->assertEquals('13800138000', $this->sendLog->getMobile());
-    }
-
-    public function testZone_可以设置和获取()
-    {
-        $this->sendLog->setZone('+86');
-        $this->assertEquals('+86', $this->sendLog->getZone());
-    }
-
-    public function testMemo_可以设置和获取()
-    {
-        $this->sendLog->setMemo('退回原因');
-        $this->assertEquals('退回原因', $this->sendLog->getMemo());
-    }
-
-    public function testStatus_可以设置和获取()
-    {
-        $this->sendLog->setStatus(SmsReceiveEnum::SENT);
-        $this->assertEquals(SmsReceiveEnum::SENT, $this->sendLog->getStatus());
-    }
-
-    public function test__toString_返回日志描述()
-    {
+        $sendLog = new SendLog();
         // 设置一个非0的ID以确保__toString不返回空字符串
-        $reflection = new \ReflectionClass($this->sendLog);
+        $reflection = new \ReflectionClass($sendLog);
         $idProperty = $reflection->getProperty('id');
         $idProperty->setAccessible(true);
-        $idProperty->setValue($this->sendLog, 1);
-        
-        $this->sendLog->setMobile('13800138000');
-        $this->sendLog->setStatus(SmsReceiveEnum::SENT);
-        $result = (string) $this->sendLog;
+        $idProperty->setValue($sendLog, 1);
+
+        $sendLog->setMobile('13800138000');
+        $sendLog->setStatus(SmsReceiveEnum::SENT);
+        $result = (string) $sendLog;
         $this->assertStringContainsString('13800138000', $result);
         $this->assertStringContainsString('1', $result);
     }
 
-    public function test__toString_ID为0时返回空字符串()
+    public function testToStringID为0时返回空字符串(): void
     {
-        $this->sendLog->setMobile('13800138000');
-        $this->sendLog->setStatus(SmsReceiveEnum::SENT);
-        $result = (string) $this->sendLog;
+        $sendLog = new SendLog();
+        $sendLog->setMobile('13800138000');
+        $sendLog->setStatus(SmsReceiveEnum::SENT);
+        $result = (string) $sendLog;
         $this->assertEquals('', $result);
     }
 }

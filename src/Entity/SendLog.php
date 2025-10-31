@@ -1,11 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace DiyFormBundle\Entity;
 
 use DiyFormBundle\Enum\SmsReceiveEnum;
 use DiyFormBundle\Repository\SendLogRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 use Tourze\DoctrineIndexedBundle\Attribute\IndexColumn;
 use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
 use Tourze\DoctrineUserBundle\Traits\BlameableAware;
@@ -16,38 +19,48 @@ class SendLog implements \Stringable
 {
     use TimestampableAware;
     use BlameableAware;
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: Types::INTEGER, options: ['comment' => 'ID'])]
-    private ?int $id = 0;
+    private int $id = 0;
 
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 100)]
     #[ORM\Column(length: 100, options: ['comment' => '发送批次号'])]
     private string $batchId;
 
+    #[Assert\Length(max: 6)]
     #[ORM\Column(length: 6, nullable: true, options: ['comment' => '区号'])]
     private ?string $zone = null;
 
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 20)]
+    #[Assert\Regex(pattern: '/^1[3-9]\d{9}$/', message: '手机号码格式不正确')]
     #[IndexColumn]
     #[ORM\Column(length: 20, options: ['comment' => '手机号码'])]
     private string $mobile;
 
+    #[Assert\Length(max: 100)]
     #[ORM\Column(length: 100, nullable: true, options: ['comment' => '退回原因'])]
     private ?string $memo = null;
 
+    #[Assert\Choice(callback: [SmsReceiveEnum::class, 'cases'])]
     #[ORM\Column(nullable: true, enumType: SmsReceiveEnum::class, options: ['comment' => '接收状态'])]
     private ?SmsReceiveEnum $status = null;
 
     public function __toString(): string
     {
-        if (null === $this->getId() || 0 === $this->getId()) {
+        if (0 === $this->getId()) {
             return '';
         }
 
-        $statusStr = $this->getStatus() !== null ? $this->getStatus()->value : '未知';
+        $statusStr = null !== $this->getStatus() ? $this->getStatus()->value : '未知';
+
         return "SMS日志#{$this->getId()} - {$this->getMobile()} - {$statusStr}";
     }
 
-    public function getId(): ?int
+    public function getId(): int
     {
         return $this->id;
     }
@@ -57,11 +70,9 @@ class SendLog implements \Stringable
         return $this->batchId;
     }
 
-    public function setBatchId(string $batchId): static
+    public function setBatchId(string $batchId): void
     {
         $this->batchId = $batchId;
-
-        return $this;
     }
 
     public function getMobile(): string
@@ -69,11 +80,9 @@ class SendLog implements \Stringable
         return $this->mobile;
     }
 
-    public function setMobile(string $mobile): static
+    public function setMobile(string $mobile): void
     {
         $this->mobile = $mobile;
-
-        return $this;
     }
 
     public function getMemo(): ?string
@@ -81,11 +90,9 @@ class SendLog implements \Stringable
         return $this->memo;
     }
 
-    public function setMemo(?string $memo): static
+    public function setMemo(?string $memo): void
     {
         $this->memo = $memo;
-
-        return $this;
     }
 
     public function getStatus(): ?SmsReceiveEnum
@@ -93,11 +100,9 @@ class SendLog implements \Stringable
         return $this->status;
     }
 
-    public function setStatus(?SmsReceiveEnum $status): static
+    public function setStatus(?SmsReceiveEnum $status): void
     {
         $this->status = $status;
-
-        return $this;
     }
 
     public function getZone(): ?string
@@ -105,11 +110,8 @@ class SendLog implements \Stringable
         return $this->zone;
     }
 
-    public function setZone(?string $zone): static
+    public function setZone(?string $zone): void
     {
         $this->zone = $zone;
-
-        return $this;
     }
-
 }

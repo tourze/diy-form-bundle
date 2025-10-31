@@ -1,8 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace DiyFormBundle\Procedure\Step;
 
 use DiyFormBundle\Entity\Data;
+use DiyFormBundle\Entity\Field;
+use DiyFormBundle\Entity\Form;
+use DiyFormBundle\Entity\Record;
 use DiyFormBundle\Event\BeforeAnswerSingleDiyFormEvent;
 use DiyFormBundle\Repository\DataRepository;
 use DiyFormBundle\Repository\FieldRepository;
@@ -38,8 +43,9 @@ class AnswerSingleDiyFormQuestion extends LockableProcedure
     #[MethodParam(description: '题目/字段ID，如果是希望拿第一题，那这里可以不传入')]
     public int $fieldId;
 
+    /** @var string|array<int, mixed>|int */
     #[MethodParam(description: '输入/选择值，如果是希望拿第一题，那这里可以不传入')]
-    public string|array|int $input = '';
+    public $input = '';
 
     #[MethodParam(description: '是否跳过这个题目，跳过的话input可以不传入')]
     public bool $skip = false;
@@ -58,79 +64,130 @@ class AnswerSingleDiyFormQuestion extends LockableProcedure
 
     public function execute(): array
     {
+        $form = $this->validateAndGetForm();
+        $record = $this->validateAndGetRecord($form);
+        $inputField = $this->validateAndGetField($form);
+
+        $this->dispatchBeforeAnswerEvent($inputField);
+        $this->processAnswer($record, $inputField, $form);
+
+        return [
+            '__message' => '答题成功',
+        ];
+    }
+
+    private function validateAndGetForm(): Form
+    {
         $form = $this->formRepository->findOneBy([
             'id' => $this->formId,
             'valid' => true,
         ]);
+
         if (null === $form) {
             throw new ApiException('找不到表单');
         }
 
+        return $form;
+    }
+
+    private function validateAndGetRecord(Form $form): Record
+    {
         $record = $this->recordRepository->findOneBy([
             'id' => $this->recordId,
             'form' => $form,
             'user' => $this->security->getUser(),
         ]);
+
         if (null === $record) {
             throw new ApiException('找不到答题记录');
         }
 
+        return $record;
+    }
+
+    private function validateAndGetField(Form $form): Field
+    {
         $inputField = $this->fieldRepository->findOneBy([
             'id' => $this->fieldId,
             'form' => $form,
         ]);
+
         if (null === $inputField) {
             throw new ApiException('找不到指定题目/字段');
         }
 
+        return $inputField;
+    }
+
+    private function dispatchBeforeAnswerEvent(Field $inputField): void
+    {
         $event = new BeforeAnswerSingleDiyFormEvent();
         $event->setField($inputField);
-        $event->setUser($this->security->getUser());
+        $user = $this->security->getUser();
+        if (null !== $user) {
+            $event->setUser($user);
+        }
         $event->setInput(is_array($this->input) ? Json::encode($this->input) : (string) $this->input);
         $this->eventDispatcher->dispatch($event);
+    }
 
-        $this->entityManager->wrapInTransaction(function () use ($record, $inputField, $form) {
-            // 如果已经答过，就当做更新
-            $data = $this->dataRepository->findOneBy([
-                'record' => $record,
-                'field' => $inputField,
-            ]);
-            if (null === $data) {
-                $data = new Data();
-                $data->setRecord($record);
-                $data->setField($inputField);
-            }
-
-            // 可能会有返回逻辑，例如已经回答了 1,2,3,4 前端此时可能会返回到第 1 题，重新作答，此时我们需要将后面的提交数据全部删除
-            $sortedFields = $form->getSortedFields();
-            foreach ($sortedFields as $k => $sortedField) {
-                unset($sortedFields[$k]);
-                if ($sortedField->getId() === $inputField->getId()) {
-                    break;
-                }
-            }
-            foreach ($sortedFields as $sortedField) {
-                $this->dataRepository->createQueryBuilder('a')
-                    ->delete()
-                    ->where('a.field = :field AND a.record = :record AND a.deletable = true')
-                    ->setParameter('field', $sortedField)
-                    ->setParameter('record', $record)
-                    ->getQuery()
-                    ->execute();
-            }
-
-            $answerTags = $this->tagCalculator->findByRecord($record);
-            $data->setAnswerTags($answerTags);
-
-            $data->setInput(is_array($this->input) ? Json::encode($this->input) : strval($this->input));
-            $data->setSkip($this->skip);
-            $this->entityManager->persist($data);
-            $this->entityManager->flush();
+    private function processAnswer(Record $record, Field $inputField, Form $form): void
+    {
+        $this->entityManager->wrapInTransaction(function () use ($record, $inputField, $form): void {
+            $data = $this->getOrCreateDataEntry($record, $inputField);
+            $this->cleanupLaterFields($record, $inputField, $form);
+            $this->updateDataEntry($data, $record);
         });
+    }
 
-        return [
-            '__message' => '答题成功',
-        ];
+    private function getOrCreateDataEntry(Record $record, Field $inputField): Data
+    {
+        $data = $this->dataRepository->findOneBy([
+            'record' => $record,
+            'field' => $inputField,
+        ]);
+
+        if (null === $data) {
+            $data = new Data();
+            $data->setRecord($record);
+            $data->setField($inputField);
+        }
+
+        return $data;
+    }
+
+    private function cleanupLaterFields(Record $record, Field $inputField, Form $form): void
+    {
+        $sortedFields = $form->getSortedFields();
+
+        foreach ($sortedFields as $k => $sortedField) {
+            unset($sortedFields[$k]);
+            if ($sortedField->getId() === $inputField->getId()) {
+                break;
+            }
+        }
+
+        foreach ($sortedFields as $sortedField) {
+            $this->dataRepository->createQueryBuilder('a')
+                ->delete()
+                ->where('a.field = :field AND a.record = :record AND a.deletable = true')
+                ->setParameter('field', $sortedField)
+                ->setParameter('record', $record)
+                ->getQuery()
+                ->execute()
+            ;
+        }
+    }
+
+    private function updateDataEntry(Data $data, Record $record): void
+    {
+        $answerTags = $this->tagCalculator->findByRecord($record);
+        // Convert array<string> to list<string> for setAnswerTags
+        $data->setAnswerTags(array_values($answerTags));
+        $data->setInput(is_array($this->input) ? Json::encode($this->input) : strval($this->input));
+        $data->setSkip($this->skip);
+        $this->entityManager->persist($data);
+        $this->entityManager->flush();
     }
 
     public static function getMockResult(): ?array

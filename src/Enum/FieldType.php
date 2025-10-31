@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace DiyFormBundle\Enum;
 
 use Tourze\EnumExtra\Itemable;
@@ -12,7 +14,6 @@ enum FieldType: string implements Labelable, Itemable, Selectable
 {
     use ItemTrait;
     use SelectTrait;
-
     case SINGLE_SELECT = 'single-select';
     case RADIO_SELECT = 'radio-select';
     case MULTIPLE_SELECT = 'multiple-select';

@@ -1,15 +1,19 @@
 <?php
 
+declare(strict_types=1);
+
 namespace DiyFormBundle\ExpressionLanguage\Function;
 
 use DiyFormBundle\Entity\Record;
+use Monolog\Attribute\WithMonologChannel;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\ExpressionLanguage\ExpressionFunction;
 
 /**
  * 获取指定记录指定题号的回答
- * answerItem('2') 代表读取题目序号等于 2 的题目的答案
+ * answerItem('2') 代表读取题目序号等于 2 的题目的答案.
  */
+#[WithMonologChannel(channel: 'diy_form')]
 class AnswerItemFunction extends ExpressionFunction
 {
     protected Record $record;
@@ -34,7 +38,10 @@ class AnswerItemFunction extends ExpressionFunction
         return "answerItem({$number})";
     }
 
-    public function evaluator($arguments, string|int $number): mixed
+    /**
+     * @param array<string, mixed> $arguments
+     */
+    public function evaluator(array $arguments, string|int $number): mixed
     {
         $number = strval($number);
 
@@ -42,7 +49,8 @@ class AnswerItemFunction extends ExpressionFunction
             'number' => $number,
             'record' => $this->getRecord(),
         ]);
-        $res = $this->getRecord()->obtainDataBySN($number)->getInputArray();
+        $data = $this->getRecord()->obtainDataBySN($number);
+        $res = $data?->getInputArray() ?? [];
         sort($res);
 
         return implode(',', $res);

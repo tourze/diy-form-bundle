@@ -1,15 +1,19 @@
 <?php
 
+declare(strict_types=1);
+
 namespace DiyFormBundle\Procedure\Step;
 
 use DiyFormBundle\Entity\Data;
+use DiyFormBundle\Entity\Form;
+use DiyFormBundle\Entity\Record;
 use DiyFormBundle\Event\FieldFormatEvent;
 use DiyFormBundle\Event\OptionsFormatEvent;
 use DiyFormBundle\Repository\DataRepository;
 use DiyFormBundle\Repository\FormRepository;
 use DiyFormBundle\Repository\RecordRepository;
 use DiyFormBundle\Service\SessionService;
-use Doctrine\Common\Collections\Criteria;
+use DiyFormBundle\Session\NextField;
 use Monolog\Attribute\WithMonologChannel;
 use Psr\Log\LoggerInterface;
 use Symfony\Bundle\SecurityBundle\Security;
@@ -51,7 +55,26 @@ class GetNextDiyFormField extends LockableProcedure
     ) {
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function execute(): array
+    {
+        $form = $this->validateAndGetForm();
+        $record = $this->validateAndGetRecord($form);
+        $nextField = $this->getNextField($record);
+
+        $result = $this->buildBasicResult($nextField);
+        $result = $this->updateShowBackStatus($result, $record);
+
+        if (is_bool($result['hasNext']) && $result['hasNext'] && null !== $nextField) {
+            $result = $this->addFieldData($result, $record, $nextField);
+        }
+
+        return $result;
+    }
+
+    private function validateAndGetForm(): Form
     {
         $form = $this->formRepository->findOneBy([
             'id' => $this->formId,
@@ -61,6 +84,11 @@ class GetNextDiyFormField extends LockableProcedure
             throw new ApiException('找不到表单');
         }
 
+        return $form;
+    }
+
+    private function validateAndGetRecord(Form $form): Record
+    {
         $record = $this->recordRepository->findOneBy([
             'id' => $this->recordId,
             'form' => $form,
@@ -70,52 +98,114 @@ class GetNextDiyFormField extends LockableProcedure
             throw new ApiException('找不到答题记录');
         }
 
+        return $record;
+    }
+
+    private function getNextField(Record $record): ?NextField
+    {
         try {
-            $nextField = $this->sessionService->getNextField($record);
+            return $this->sessionService->getNextField($record);
         } catch (SyntaxError $exception) {
             $this->logger->error('解析表达式时发生语法错误', [
                 'exception' => $exception,
             ]);
             throw new ApiException('判断时发生语法错误，请联系客服', 0, [], $exception);
         }
+    }
 
-        $result = [
+    /**
+     * @return array<string, mixed>
+     */
+    private function buildBasicResult(?NextField $nextField): array
+    {
+        $answerTags = [];
+        $showBack = false;
+
+        if (null !== $nextField) {
+            $answerTags = $nextField->getAnswerTags();
+            $showBack = $nextField->isShowBack();
+        }
+
+        return [
             'hasNext' => null !== $nextField,
-            'answerTags' => null !== $nextField ? $nextField->getAnswerTags() : [],
-            'showBack' => null !== $nextField && $nextField->isShowBack(),
-            'showConfirm' => true, // 基本都有的
+            'answerTags' => $answerTags,
+            'showBack' => null !== $nextField && $showBack,
+            'showConfirm' => true,
         ];
+    }
 
-        // 如果这个人上一次回答的题目，是一个不可删除的题目，我们就不要让他返回上一题了
-        /** @var Data|null $lastData */
+    /**
+     * @param array<string, mixed> $result
+     * @return array<string, mixed>
+     */
+    private function updateShowBackStatus(array $result, Record $record): array
+    {
         $lastData = $this->dataRepository->createQueryBuilder('a')
             ->where('a.record = :record')
-            ->orderBy('a.id', Criteria::DESC)
+            ->orderBy('a.id', 'DESC')
             ->setParameter('record', $record)
             ->setMaxResults(1)
             ->getQuery()
-            ->getOneOrNullResult();
+            ->getOneOrNullResult()
+        ;
+        assert($lastData instanceof Data || null === $lastData);
         if (null !== $lastData) {
             $result['showBack'] = $lastData->isDeletable();
         }
 
-        if ($result['hasNext']) {
-            $event = new FieldFormatEvent();
-            $event->setRecord($record);
-            $event->setField($nextField->getField());
-            $event->setResult($this->normalizer->normalize($nextField->getField(), 'array', ['groups' => 'restful_read']));
-            $this->eventDispatcher->dispatch($event);
-            $result['field'] = $event->getResult();
+        return $result;
+    }
 
-            $event = new OptionsFormatEvent();
-            $event->setRecord($record);
-            $event->setField($nextField->getField());
-            $event->setOptions($nextField->getOptions());
-            $event->setResult($this->normalizer->normalize($nextField->getOptions(), 'array', ['groups' => 'restful_read']));
-            $this->eventDispatcher->dispatch($event);
-            $result['options'] = $event->getResult();
-        }
+    /**
+     * @param array<string, mixed> $result
+     * @return array<string, mixed>
+     */
+    private function addFieldData(array $result, Record $record, NextField $nextField): array
+    {
+        $result['field'] = $this->getFieldData($record, $nextField);
+        $result['options'] = $this->getOptionsData($record, $nextField);
 
         return $result;
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function getFieldData(Record $record, NextField $nextField): array
+    {
+        $event = new FieldFormatEvent();
+        $event->setRecord($record);
+        $event->setField($nextField->getField());
+
+        $fieldResult = $this->normalizer->normalize($nextField->getField(), 'array', ['groups' => 'restful_read']);
+        if (!is_array($fieldResult)) {
+            throw new \RuntimeException('Failed to normalize field to array');
+        }
+        /** @var array<string, mixed> $fieldResult */
+        $event->setResult($fieldResult);
+        $this->eventDispatcher->dispatch($event);
+
+        return $event->getResult();
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function getOptionsData(Record $record, NextField $nextField): array
+    {
+        $event = new OptionsFormatEvent();
+        $event->setRecord($record);
+        $event->setField($nextField->getField());
+        $event->setOptions($nextField->getOptions());
+
+        $optionsResult = $this->normalizer->normalize($nextField->getOptions(), 'array', ['groups' => 'restful_read']);
+        if (!is_array($optionsResult)) {
+            throw new \RuntimeException('Failed to normalize options to array');
+        }
+        /** @var array<string, mixed> $optionsResult */
+        $event->setResult($optionsResult);
+        $this->eventDispatcher->dispatch($event);
+
+        return $event->getResult();
     }
 }

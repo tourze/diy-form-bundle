@@ -1,24 +1,28 @@
 <?php
 
+declare(strict_types=1);
+
 namespace DiyFormBundle\Entity;
 
-use AntdCpBundle\Builder\Field\LongTextField;
 use DiyFormBundle\Enum\FieldType;
 use DiyFormBundle\Repository\OptionRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Attribute\Groups;
 use Symfony\Component\Serializer\Attribute\Ignore;
+use Symfony\Component\Validator\Constraints as Assert;
 use Tourze\Arrayable\ApiArrayInterface;
 use Tourze\Arrayable\PlainArrayInterface;
-use Tourze\DoctrineIpBundle\Attribute\CreateIpColumn;
-use Tourze\DoctrineIpBundle\Attribute\UpdateIpColumn;
+use Tourze\DoctrineIpBundle\Traits\IpTraceableAware;
 use Tourze\DoctrineSnowflakeBundle\Attribute\SnowflakeColumn;
-use Tourze\DoctrineSnowflakeBundle\Service\SnowflakeIdGenerator;
 use Tourze\DoctrineSnowflakeBundle\Traits\SnowflakeKeyAware;
 use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
 use Tourze\DoctrineUserBundle\Traits\BlameableAware;
 
+/**
+ * @implements ApiArrayInterface<string, mixed>
+ * @implements PlainArrayInterface<string, mixed>
+ */
 #[ORM\Entity(repositoryClass: OptionRepository::class)]
 #[ORM\Table(name: 'diy_form_option', options: ['comment' => '选项'])]
 class Option implements \Stringable, PlainArrayInterface, ApiArrayInterface
@@ -26,61 +30,65 @@ class Option implements \Stringable, PlainArrayInterface, ApiArrayInterface
     use TimestampableAware;
     use BlameableAware;
     use SnowflakeKeyAware;
-
+    use IpTraceableAware;
 
     #[Ignore]
     #[ORM\ManyToOne(targetEntity: Field::class, inversedBy: 'options')]
     #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
     private ?Field $field = null;
 
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 120)]
     #[Groups(groups: ['restful_read', 'admin_curd'])]
     #[SnowflakeColumn]
     #[ORM\Column(type: Types::STRING, length: 120, options: ['comment' => '序列号'])]
     private string $sn = '';
 
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 1000)]
     #[Groups(groups: ['restful_read', 'admin_curd'])]
     #[ORM\Column(type: Types::STRING, length: 1000, options: ['comment' => '选项文本'])]
     private ?string $text = null;
 
+    #[Assert\Length(max: 1000)]
     #[Groups(groups: ['restful_read', 'admin_curd'])]
     #[ORM\Column(type: Types::STRING, length: 1000, nullable: true, options: ['comment' => '说明文本'])]
     private ?string $description = '';
 
+    #[Assert\Length(max: 600)]
     #[Groups(groups: ['admin_curd'])]
     #[ORM\Column(type: Types::STRING, length: 600, nullable: true, options: ['comment' => '标签'])]
     private ?string $tags = null;
 
+    #[Assert\Length(max: 65535)]
     #[Groups(groups: ['admin_curd'])]
     #[ORM\Column(type: Types::TEXT, nullable: true, options: ['comment' => '显示规则'])]
     private ?string $showExpression = null;
 
+    #[Assert\Length(max: 1000)]
     #[Groups(groups: ['restful_read', 'admin_curd'])]
     #[ORM\Column(type: Types::STRING, length: 1000, nullable: true, options: ['comment' => '互斥分组'])]
     private ?string $mutex = null;
 
+    #[Assert\Type(type: 'bool')]
     #[Groups(groups: ['restful_read', 'admin_curd'])]
     #[ORM\Column(type: Types::BOOLEAN, nullable: true, options: ['comment' => '自由输入'])]
     private ?bool $allowInput = false;
 
+    #[Assert\Type(type: 'bool')]
     #[Groups(groups: ['restful_read', 'admin_curd'])]
     #[ORM\Column(type: Types::BOOLEAN, nullable: true, options: ['comment' => '正确答案'])]
     private ?bool $answer = false;
 
+    #[Assert\Length(max: 255)]
     #[Groups(groups: ['restful_read', 'admin_curd'])]
     #[ORM\Column(type: Types::STRING, length: 255, nullable: true, options: ['comment' => 'ICON'])]
     private ?string $icon = null;
 
+    #[Assert\Length(max: 255)]
     #[Groups(groups: ['restful_read', 'admin_curd'])]
     #[ORM\Column(type: Types::STRING, length: 255, nullable: true, options: ['comment' => '选中态ICON'])]
     private ?string $selectedIcon = null;
-
-    #[CreateIpColumn]
-    #[ORM\Column(type: Types::STRING, length: 128, nullable: true, options: ['comment' => '创建者IP'])]
-    private ?string $createdFromIp = null;
-
-    #[UpdateIpColumn]
-    #[ORM\Column(type: Types::STRING, length: 128, nullable: true, options: ['comment' => '更新者IP'])]
-    private ?string $updatedFromIp = null;
 
     public function __toString(): string
     {
@@ -88,7 +96,7 @@ class Option implements \Stringable, PlainArrayInterface, ApiArrayInterface
             return '';
         }
 
-        $str = $this->getText();
+        $str = $this->getText() ?? '';
         if (null !== $this->getTags()) {
             $str = "[{$this->getTags()}]{$str}";
         }
@@ -116,17 +124,14 @@ class Option implements \Stringable, PlainArrayInterface, ApiArrayInterface
         return $str;
     }
 
-
     public function getField(): ?Field
     {
         return $this->field;
     }
 
-    public function setField(?Field $field): self
+    public function setField(?Field $field): void
     {
         $this->field = $field;
-
-        return $this;
     }
 
     public function getText(): ?string
@@ -134,11 +139,9 @@ class Option implements \Stringable, PlainArrayInterface, ApiArrayInterface
         return $this->text;
     }
 
-    public function setText(string $text): self
+    public function setText(?string $text): void
     {
         $this->text = $text;
-
-        return $this;
     }
 
     public function getSn(): ?string
@@ -146,11 +149,9 @@ class Option implements \Stringable, PlainArrayInterface, ApiArrayInterface
         return $this->sn;
     }
 
-    public function setSn(string $sn): self
+    public function setSn(string $sn): void
     {
         $this->sn = $sn;
-
-        return $this;
     }
 
     public function isAllowInput(): ?bool
@@ -158,11 +159,9 @@ class Option implements \Stringable, PlainArrayInterface, ApiArrayInterface
         return $this->allowInput;
     }
 
-    public function setAllowInput(?bool $allowInput): self
+    public function setAllowInput(?bool $allowInput): void
     {
         $this->allowInput = $allowInput;
-
-        return $this;
     }
 
     public function isAnswer(): ?bool
@@ -170,11 +169,9 @@ class Option implements \Stringable, PlainArrayInterface, ApiArrayInterface
         return $this->answer;
     }
 
-    public function setAnswer(?bool $answer): self
+    public function setAnswer(?bool $answer): void
     {
         $this->answer = $answer;
-
-        return $this;
     }
 
     public function getTags(): ?string
@@ -182,20 +179,22 @@ class Option implements \Stringable, PlainArrayInterface, ApiArrayInterface
         return $this->tags;
     }
 
+    /**
+     * @return list<string>
+     */
     public function getTagList(): array
     {
-        if (empty($this->getTags())) {
+        $tags = $this->getTags();
+        if (null === $tags || '' === $tags) {
             return [];
         }
 
-        return explode(',', $this->getTags());
+        return explode(',', $tags);
     }
 
-    public function setTags(?string $tags): self
+    public function setTags(?string $tags): void
     {
         $this->tags = $tags;
-
-        return $this;
     }
 
     public function getShowExpression(): ?string
@@ -203,11 +202,9 @@ class Option implements \Stringable, PlainArrayInterface, ApiArrayInterface
         return $this->showExpression;
     }
 
-    public function setShowExpression(?string $showExpression): self
+    public function setShowExpression(?string $showExpression): void
     {
         $this->showExpression = $showExpression;
-
-        return $this;
     }
 
     public function getIcon(): ?string
@@ -215,11 +212,9 @@ class Option implements \Stringable, PlainArrayInterface, ApiArrayInterface
         return $this->icon;
     }
 
-    public function setIcon(?string $icon): self
+    public function setIcon(?string $icon): void
     {
         $this->icon = $icon;
-
-        return $this;
     }
 
     public function getSelectedIcon(): ?string
@@ -227,11 +222,9 @@ class Option implements \Stringable, PlainArrayInterface, ApiArrayInterface
         return $this->selectedIcon;
     }
 
-    public function setSelectedIcon(?string $selectedIcon): self
+    public function setSelectedIcon(?string $selectedIcon): void
     {
         $this->selectedIcon = $selectedIcon;
-
-        return $this;
     }
 
     public function getDescription(): ?string
@@ -239,11 +232,9 @@ class Option implements \Stringable, PlainArrayInterface, ApiArrayInterface
         return $this->description;
     }
 
-    public function setDescription(?string $description): self
+    public function setDescription(?string $description): void
     {
         $this->description = $description;
-
-        return $this;
     }
 
     public function getMutex(): ?string
@@ -251,37 +242,14 @@ class Option implements \Stringable, PlainArrayInterface, ApiArrayInterface
         return $this->mutex;
     }
 
-    public function setMutex(?string $mutex): self
+    public function setMutex(?string $mutex): void
     {
         $this->mutex = $mutex;
-
-        return $this;
     }
 
-    public function getCreatedFromIp(): ?string
-    {
-        return $this->createdFromIp;
-    }
-
-    public function setCreatedFromIp(?string $createdFromIp): self
-    {
-        $this->createdFromIp = $createdFromIp;
-
-        return $this;
-    }
-
-    public function getUpdatedFromIp(): ?string
-    {
-        return $this->updatedFromIp;
-    }
-
-    public function setUpdatedFromIp(?string $updatedFromIp): self
-    {
-        $this->updatedFromIp = $updatedFromIp;
-
-        return $this;
-    }
-
+    /**
+     * @return array<string, mixed>
+     */
     public function retrievePlainArray(): array
     {
         return [
@@ -300,6 +268,9 @@ class Option implements \Stringable, PlainArrayInterface, ApiArrayInterface
         ];
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function retrieveApiArray(): array
     {
         return [

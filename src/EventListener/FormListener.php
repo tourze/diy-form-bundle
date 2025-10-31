@@ -1,12 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace DiyFormBundle\EventListener;
 
 use DiyFormBundle\Entity\Form;
 use DiyFormBundle\Repository\RecordRepository;
 use Doctrine\Bundle\DoctrineBundle\Attribute\AsEntityListener;
 use Doctrine\ORM\Events;
-use Tourze\JsonRPC\Core\Exception\ApiException;
 
 #[AsEntityListener(event: Events::preRemove, method: 'preRemove', entity: Form::class)]
 class FormListener
@@ -16,7 +17,7 @@ class FormListener
     }
 
     /**
-     * 删除之前，我们检查是否已经有提交过记录
+     * 删除之前，我们检查是否已经有提交过记录.
      */
     public function preRemove(Form $object): void
     {
@@ -24,7 +25,7 @@ class FormListener
             'form' => $object,
         ]);
         if ($c > 0) {
-            throw new ApiException('该调查问卷已被使用，无法删除');
+            throw new \RuntimeException('该调查问卷已被使用，无法删除');
         }
     }
 }

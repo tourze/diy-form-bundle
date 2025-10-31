@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace DiyFormBundle\Procedure\Step;
 
 use Carbon\CarbonImmutable;
@@ -35,6 +37,9 @@ class CreateDiyFormRecord extends LockableProcedure
     ) {
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function execute(): array
     {
         $form = $this->formRepository->findOneBy([
@@ -47,12 +52,22 @@ class CreateDiyFormRecord extends LockableProcedure
 
         $record = new Record();
         $record->setForm($form);
-        $record->setUser($this->security->getUser());
+        $user = $this->security->getUser();
+        if (null !== $user) {
+            $record->setUser($user);
+        }
         $record->setFinished(false);
         $record->setStartTime(CarbonImmutable::now());
         $this->entityManager->persist($record);
         $this->entityManager->flush();
 
-        return $this->normalizer->normalize($record, 'array', ['groups' => 'restful_read']);
+        $result = $this->normalizer->normalize($record, 'array', ['groups' => 'restful_read']);
+
+        if (!is_array($result)) {
+            throw new \RuntimeException('Failed to normalize record to array');
+        }
+
+        /** @var array<string, mixed> $result */
+        return $result;
     }
 }

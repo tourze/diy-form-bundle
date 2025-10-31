@@ -1,7 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace DiyFormBundle\Controller;
 
+use DiyFormBundle\Entity\Form;
 use DiyFormBundle\Repository\FormRepository;
 use Doctrine\DBAL\Connection;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -9,7 +12,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Attribute\Route;
 
-class SqlController extends AbstractController
+final class SqlController extends AbstractController
 {
     #[Route(path: '/diy-form-sql/{id}', name: 'diy-model-sql')]
     public function __invoke(string $id, FormRepository $formRepository, Connection $connection): Response
@@ -31,7 +34,7 @@ class SqlController extends AbstractController
 
         foreach ($form->getSortedFields() as $field) {
             $alias = "v{$field->getId()}";
-            $name = $connection->getDatabasePlatform()->quoteIdentifier($field->getTitle());
+            $name = $connection->getDatabasePlatform()->quoteSingleIdentifier($field->getTitle());
             $sqlLines[] = "LEFT JOIN diy_form_data AS {$alias} ON (ce.id = {$alias}.record_id AND {$alias}.field_id = '{$field->getId()}')";
             $selectParts[] = "{$alias}.input AS {$name}";
         }

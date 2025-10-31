@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace DiyFormBundle\Procedure\Record;
 
 use DiyFormBundle\Repository\RecordRepository;

@@ -1,13 +1,19 @@
 <?php
 
+declare(strict_types=1);
+
 namespace DiyFormBundle\Service;
 
 use DiyFormBundle\Entity\SendLog;
+use DiyFormBundle\Entity\SmsDsn;
 use DiyFormBundle\Enum\SmsReceiveEnum;
 use DiyFormBundle\Repository\SmsDsnRepository;
-use Psr\Container\ContainerInterface;
+use Monolog\Attribute\WithMonologChannel;
+use Psr\Log\LoggerInterface;
+use Symfony\Component\DependencyInjection\Attribute\Autoconfigure;
 use Symfony\Component\Notifier\Message\SentMessage;
 use Symfony\Component\Notifier\Message\SmsMessage;
+use Symfony\Component\Notifier\Transport;
 use Symfony\Component\Notifier\Transport\TransportInterface;
 use Symfony\Component\Uid\Uuid;
 use Tourze\DoctrineAsyncInsertBundle\Service\AsyncInsertService as DoctrineService;
@@ -15,12 +21,14 @@ use Tourze\DoctrineAsyncInsertBundle\Service\AsyncInsertService as DoctrineServi
 /**
  * @see https://symfony.com/doc/current/notifier.html#notifier-sms-channel
  */
-class SmsService
+#[Autoconfigure(public: true)]
+#[WithMonologChannel(channel: 'diy_form')]
+readonly class SmsService
 {
     public function __construct(
-        private readonly SmsDsnRepository $dsnRepository,
-        private readonly DoctrineService $doctrineService,
-        private readonly ContainerInterface $container,
+        private SmsDsnRepository $dsnRepository,
+        private DoctrineService $doctrineService,
+        private LoggerInterface $logger,
     ) {
     }
 
@@ -43,27 +51,45 @@ class SmsService
     {
         // 查找所有有效的配置
         $dsnList = $this->dsnRepository->findBy(['valid' => true]);
-        if (empty($dsnList)) {
+        if ([] === $dsnList || 0 === count($dsnList)) {
             return null;
         }
 
         $totalWeight = 0;
         foreach ($dsnList as $dsn) {
-            $totalWeight += $dsn->getWeight();
+            assert($dsn instanceof SmsDsn);
+            $totalWeight += $dsn->getWeight() ?? 0;
         }
 
         $randomWeight = random_int(1, $totalWeight);
         $cumulativeWeight = 0;
 
         foreach ($dsnList as $dsn) {
-            $cumulativeWeight += $dsn->getWeight();
+            assert($dsn instanceof SmsDsn);
+            $cumulativeWeight += $dsn->getWeight() ?? 0;
 
             if ($randomWeight <= $cumulativeWeight) {
                 // TODO 因为有一些Transport不一定Symfony官方支持，所以我们还可能需要手工改一次
-                return $this->container->get('texter.transport_factory')->fromString($dsn->getDsn());
+                $dsnString = $dsn->getDsn();
+                if (null === $dsnString) {
+                    continue;
+                }
+
+                try {
+                    return Transport::fromDsn($dsnString);
+                } catch (\Throwable $e) {
+                    $this->logger->error('Failed to create transport from DSN', [
+                        'dsn' => $dsn->getDsn(),
+                        'error' => $e->getMessage(),
+                    ]);
+                }
             }
         }
 
-        return $this->container->get('texter.transport_factory')->fromString('null://null');
+        try {
+            return Transport::fromDsn('null://null');
+        } catch (\Throwable $e) {
+            return null;
+        }
     }
 }

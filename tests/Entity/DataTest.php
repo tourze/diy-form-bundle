@@ -1,60 +1,51 @@
 <?php
 
+declare(strict_types=1);
+
 namespace DiyFormBundle\Tests\Entity;
 
 use DiyFormBundle\Entity\Data;
 use DiyFormBundle\Entity\Field;
-use DiyFormBundle\Entity\Record;
-use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
+use Tourze\PHPUnitDoctrineEntity\AbstractEntityTestCase;
 
-class DataTest extends TestCase
+/**
+ * @internal
+ */
+#[CoversClass(Data::class)]
+final class DataTest extends AbstractEntityTestCase
 {
-    private Data $data;
-
-    protected function setUp(): void
+    protected function createEntity(): object
     {
-        $this->data = new Data();
+        return new Data();
     }
 
-    public function testId_初始值为null()
+    /**
+     * @return iterable<array{0: string, 1: mixed}>
+     */
+    public static function propertiesProvider(): iterable
     {
-        $this->assertNull($this->data->getId());
+        yield 'input' => ['input', '测试输入'];
+        yield 'skip' => ['skip', true];
+        yield 'deletable' => ['deletable', false];
+        yield 'answerTags' => ['answerTags', ['tag1', 'tag2']];
     }
 
-    public function testInput_可以设置和获取()
+    public function testToString返回输入内容(): void
     {
-        $this->data->setInput('测试输入');
-        $this->assertEquals('测试输入', $this->data->getInput());
-    }
-
-    public function testField_可以设置和获取()
-    {
-        $field = new Field();
-        $this->data->setField($field);
-        $this->assertSame($field, $this->data->getField());
-    }
-
-    public function testRecord_可以设置和获取()
-    {
-        $record = new Record();
-        $this->data->setRecord($record);
-        $this->assertSame($record, $this->data->getRecord());
-    }
-
-    public function test__toString_返回输入内容()
-    {
-        $this->data->setId('123');
+        $data = new Data();
+        $data->setId('123');
         $field = new Field();
         $field->setTitle('测试字段');
-        $this->data->setField($field);
-        $this->data->setInput('测试数据');
-        $this->assertEquals('测试字段: 测试数据', (string) $this->data);
+        $data->setField($field);
+        $data->setInput('测试数据');
+        $this->assertEquals('测试字段: 测试数据', (string) $data);
     }
 
-    public function test__toString_ID为null时返回空字符串()
+    public function testToStringID为null时返回空字符串(): void
     {
-        $this->data->setInput('测试数据');
-        $this->assertEquals('', (string) $this->data);
+        $data = new Data();
+        $data->setInput('测试数据');
+        $this->assertEquals('', (string) $data);
     }
-
 }

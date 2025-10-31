@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace DiyFormBundle\Event;
 
 use DiyFormBundle\Entity\Record;

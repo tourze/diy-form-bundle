@@ -1,270 +1,143 @@
 <?php
 
+declare(strict_types=1);
+
 namespace DiyFormBundle\Tests\Entity;
 
 use DiyFormBundle\Entity\Field;
 use DiyFormBundle\Entity\Option;
 use DiyFormBundle\Enum\FieldType;
-use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
+use Tourze\PHPUnitDoctrineEntity\AbstractEntityTestCase;
 
-class OptionTest extends TestCase
+/**
+ * @internal
+ */
+#[CoversClass(Option::class)]
+final class OptionTest extends AbstractEntityTestCase
 {
-    private Option $option;
-
-    protected function setUp(): void
+    protected function createEntity(): object
     {
-        $this->option = new Option();
+        return new Option();
     }
 
-    public function testId_初始值为空()
+    /**
+     * @return iterable<array{0: string, 1: mixed}>
+     */
+    public static function propertiesProvider(): iterable
     {
-        $this->assertNull($this->option->getId());
+        yield 'sn' => ['sn', 'test-sn-123'];
+        yield 'text' => ['text', '选项文本'];
+        yield 'description' => ['description', '选项说明'];
+        yield 'tags' => ['tags', 'tag1,tag2,tag3'];
+        yield 'showExpression' => ['showExpression', 'form.field1 == "value"'];
+        yield 'mutex' => ['mutex', 'group1'];
+        yield 'allowInput' => ['allowInput', true];
+        yield 'answer' => ['answer', true];
+        yield 'icon' => ['icon', 'path/to/icon.png'];
+        yield 'selectedIcon' => ['selectedIcon', 'path/to/selected-icon.png'];
     }
 
-    public function testCreateTime_可以设置和获取()
+    public function testTagList返回标签数组(): void
     {
-        $now = new \DateTimeImmutable();
-        $this->option->setCreateTime($now);
-        $this->assertSame($now, $this->option->getCreateTime());
-    }
+        $option = new Option();
+        $option->setTags('tag1,tag2,tag3');
 
-    public function testUpdateTime_可以设置和获取()
-    {
-        $now = new \DateTimeImmutable();
-        $this->option->setUpdateTime($now);
-        $this->assertSame($now, $this->option->getUpdateTime());
-    }
-
-    public function testCreatedBy_可以设置和获取()
-    {
-        $createdBy = 'test-user';
-        $result = $this->option->setCreatedBy($createdBy);
-        
-        $this->assertSame($this->option, $result);
-        $this->assertEquals($createdBy, $this->option->getCreatedBy());
-    }
-
-    public function testUpdatedBy_可以设置和获取()
-    {
-        $updatedBy = 'test-user';
-        $result = $this->option->setUpdatedBy($updatedBy);
-        
-        $this->assertSame($this->option, $result);
-        $this->assertEquals($updatedBy, $this->option->getUpdatedBy());
-    }
-
-    public function testField_可以设置和获取()
-    {
-        $field = $this->createMock(Field::class);
-        $result = $this->option->setField($field);
-        
-        $this->assertSame($this->option, $result);
-        $this->assertSame($field, $this->option->getField());
-    }
-
-    public function testSn_可以设置和获取()
-    {
-        $sn = 'test-sn-123';
-        $result = $this->option->setSn($sn);
-        
-        $this->assertSame($this->option, $result);
-        $this->assertEquals($sn, $this->option->getSn());
-    }
-
-    public function testText_可以设置和获取()
-    {
-        $text = '选项文本';
-        $result = $this->option->setText($text);
-        
-        $this->assertSame($this->option, $result);
-        $this->assertEquals($text, $this->option->getText());
-    }
-
-    public function testDescription_可以设置和获取()
-    {
-        $description = '选项说明';
-        $result = $this->option->setDescription($description);
-        
-        $this->assertSame($this->option, $result);
-        $this->assertEquals($description, $this->option->getDescription());
-    }
-
-    public function testTags_可以设置和获取()
-    {
-        $tags = 'tag1,tag2,tag3';
-        $result = $this->option->setTags($tags);
-        
-        $this->assertSame($this->option, $result);
-        $this->assertEquals($tags, $this->option->getTags());
-    }
-
-    public function testTagList_返回标签数组()
-    {
-        $tags = 'tag1,tag2,tag3';
-        $this->option->setTags($tags);
-        
-        $tagList = $this->option->getTagList();
+        $tagList = $option->getTagList();
         $this->assertEquals(['tag1', 'tag2', 'tag3'], $tagList);
     }
 
-    public function testTagList_空标签返回空数组()
+    public function testTagList空标签返回空数组(): void
     {
-        $this->option->setTags(null);
-        $this->assertEquals([], $this->option->getTagList());
-        
-        $this->option->setTags('');
-        $this->assertEquals([], $this->option->getTagList());
+        $option = new Option();
+        $option->setTags(null);
+        $this->assertEquals([], $option->getTagList());
+
+        $option->setTags('');
+        $this->assertEquals([], $option->getTagList());
     }
 
-    public function testShowExpression_可以设置和获取()
+    public function testToString无ID时返回空字符串(): void
     {
-        $expression = 'form.field1 == "value"';
-        $result = $this->option->setShowExpression($expression);
-        
-        $this->assertSame($this->option, $result);
-        $this->assertEquals($expression, $this->option->getShowExpression());
+        $option = new Option();
+        $this->assertEquals('', (string) $option);
     }
 
-    public function testMutex_可以设置和获取()
+    public function testToString单选类型选项格式正确(): void
     {
-        $mutex = 'group1';
-        $result = $this->option->setMutex($mutex);
-        
-        $this->assertSame($this->option, $result);
-        $this->assertEquals($mutex, $this->option->getMutex());
-    }
-
-    public function testAllowInput_可以设置和获取()
-    {
-        $this->assertFalse($this->option->isAllowInput());
-        
-        $result = $this->option->setAllowInput(true);
-        
-        $this->assertSame($this->option, $result);
-        $this->assertTrue($this->option->isAllowInput());
-    }
-
-    public function testAnswer_可以设置和获取()
-    {
-        $this->assertFalse($this->option->isAnswer());
-        
-        $result = $this->option->setAnswer(true);
-        
-        $this->assertSame($this->option, $result);
-        $this->assertTrue($this->option->isAnswer());
-    }
-
-    public function testIcon_可以设置和获取()
-    {
-        $icon = 'path/to/icon.png';
-        $result = $this->option->setIcon($icon);
-        
-        $this->assertSame($this->option, $result);
-        $this->assertEquals($icon, $this->option->getIcon());
-    }
-
-    public function testSelectedIcon_可以设置和获取()
-    {
-        $selectedIcon = 'path/to/selected-icon.png';
-        $result = $this->option->setSelectedIcon($selectedIcon);
-        
-        $this->assertSame($this->option, $result);
-        $this->assertEquals($selectedIcon, $this->option->getSelectedIcon());
-    }
-
-    public function testCreatedFromIp_可以设置和获取()
-    {
-        $ip = '127.0.0.1';
-        $result = $this->option->setCreatedFromIp($ip);
-        
-        $this->assertSame($this->option, $result);
-        $this->assertEquals($ip, $this->option->getCreatedFromIp());
-    }
-
-    public function testUpdatedFromIp_可以设置和获取()
-    {
-        $ip = '127.0.0.1';
-        $result = $this->option->setUpdatedFromIp($ip);
-        
-        $this->assertSame($this->option, $result);
-        $this->assertEquals($ip, $this->option->getUpdatedFromIp());
-    }
-
-    public function testToString_无ID时返回空字符串()
-    {
-        $this->assertEquals('', (string)$this->option);
-    }
-
-    public function testToString_单选类型选项格式正确()
-    {
+        $option = new Option();
         // 使用反射设置私有属性id
         $reflectionClass = new \ReflectionClass(Option::class);
         $property = $reflectionClass->getProperty('id');
         $property->setAccessible(true);
-        $property->setValue($this->option, '123456789');
+        $property->setValue($option, '123456789');
 
-        $this->option->setText('单选项');
-        
+        $option->setText('单选项');
+
         $field = $this->createMock(Field::class);
         $field->method('getType')->willReturn(FieldType::SINGLE_SELECT);
-        $this->option->setField($field);
-        
-        $this->assertEquals('○单选项', (string)$this->option);
+        $option->setField($field);
+
+        $this->assertEquals('○单选项', (string) $option);
     }
 
-    public function testToString_多选类型选项格式正确()
+    public function testToString多选类型选项格式正确(): void
     {
+        $option = new Option();
         // 使用反射设置私有属性id
         $reflectionClass = new \ReflectionClass(Option::class);
         $property = $reflectionClass->getProperty('id');
         $property->setAccessible(true);
-        $property->setValue($this->option, '123456789');
+        $property->setValue($option, '123456789');
 
-        $this->option->setText('多选项');
-        
+        $option->setText('多选项');
+
         $field = $this->createMock(Field::class);
         $field->method('getType')->willReturn(FieldType::MULTIPLE_SELECT);
-        $this->option->setField($field);
-        
-        $this->assertEquals('□多选项', (string)$this->option);
+        $option->setField($field);
+
+        $this->assertEquals('□多选项', (string) $option);
     }
 
-    public function testToString_带标签选项格式正确()
+    public function testToString带标签选项格式正确(): void
     {
+        $option = new Option();
         // 使用反射设置私有属性id
         $reflectionClass = new \ReflectionClass(Option::class);
         $property = $reflectionClass->getProperty('id');
         $property->setAccessible(true);
-        $property->setValue($this->option, '123456789');
+        $property->setValue($option, '123456789');
 
-        $this->option->setText('测试选项');
-        $this->option->setTags('重要,特殊');
-        
-        $this->assertEquals('[重要,特殊]测试选项', (string)$this->option);
+        $option->setText('测试选项');
+        $option->setTags('重要,特殊');
+
+        $this->assertEquals('[重要,特殊]测试选项', (string) $option);
     }
 
-    public function testToString_带显示规则选项格式正确()
+    public function testToString带显示规则选项格式正确(): void
     {
+        $option = new Option();
         // 使用反射设置私有属性id
         $reflectionClass = new \ReflectionClass(Option::class);
         $property = $reflectionClass->getProperty('id');
         $property->setAccessible(true);
-        $property->setValue($this->option, '123456789');
+        $property->setValue($option, '123456789');
 
-        $this->option->setText('条件选项');
-        $this->option->setShowExpression('form.age > 18');
-        
-        $this->assertEquals('条件选项。显示规则：form.age > 18', (string)$this->option);
+        $option->setText('条件选项');
+        $option->setShowExpression('form.age > 18');
+
+        $this->assertEquals('条件选项。显示规则：form.age > 18', (string) $option);
     }
 
-    public function testRetrievePlainArray_返回正确的数组结构()
+    public function testRetrievePlainArray返回正确的数组结构(): void
     {
-        $this->option->setText('测试选项');
-        $this->option->setDescription('测试描述');
-        $this->option->setTags('tag1,tag2');
-        $this->option->setSn('test-123');
-        
-        $array = $this->option->retrievePlainArray();
+        $option = new Option();
+        $option->setText('测试选项');
+        $option->setDescription('测试描述');
+        $option->setTags('tag1,tag2');
+        $option->setSn('test-123');
+
+        $array = $option->retrievePlainArray();
         $this->assertArrayHasKey('text', $array);
         $this->assertArrayHasKey('description', $array);
         $this->assertArrayHasKey('tags', $array);
@@ -275,15 +148,16 @@ class OptionTest extends TestCase
         $this->assertEquals('test-123', $array['sn']);
     }
 
-    public function testRetrieveApiArray_返回正确的API数组结构()
+    public function testRetrieveApiArray返回正确的API数组结构(): void
     {
-        $this->option->setText('API选项');
-        $this->option->setDescription('API描述');
-        $this->option->setSn('api-123');
-        $this->option->setAllowInput(true);
-        $this->option->setAnswer(true);
-        
-        $array = $this->option->retrieveApiArray();
+        $option = new Option();
+        $option->setText('API选项');
+        $option->setDescription('API描述');
+        $option->setSn('api-123');
+        $option->setAllowInput(true);
+        $option->setAnswer(true);
+
+        $array = $option->retrieveApiArray();
         $this->assertArrayHasKey('text', $array);
         $this->assertArrayHasKey('description', $array);
         $this->assertArrayHasKey('sn', $array);
@@ -295,4 +169,4 @@ class OptionTest extends TestCase
         $this->assertTrue($array['allowInput']);
         $this->assertTrue($array['answer']);
     }
-} 
+}

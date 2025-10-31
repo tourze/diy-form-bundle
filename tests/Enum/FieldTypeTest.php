@@ -1,13 +1,20 @@
 <?php
 
+declare(strict_types=1);
+
 namespace DiyFormBundle\Tests\Enum;
 
 use DiyFormBundle\Enum\FieldType;
-use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
+use Tourze\PHPUnitEnum\AbstractEnumTestCase;
 
-class FieldTypeTest extends TestCase
+/**
+ * @internal
+ */
+#[CoversClass(FieldType::class)]
+final class FieldTypeTest extends AbstractEnumTestCase
 {
-    public function testGetLabel_返回正确的标签()
+    public function testGetLabel返回正确的标签(): void
     {
         $this->assertEquals('下拉单选', FieldType::SINGLE_SELECT->getLabel());
         $this->assertEquals('带ICON单选', FieldType::RADIO_SELECT->getLabel());
@@ -26,7 +33,7 @@ class FieldTypeTest extends TestCase
         $this->assertEquals('手机号码(验证码)', FieldType::CAPTCHA_MOBILE_PHONE->getLabel());
     }
 
-    public function testToArray_返回正确的项描述()
+    public function testToArray返回正确的项描述(): void
     {
         $singleSelectItem = FieldType::SINGLE_SELECT->toArray();
         $this->assertEquals(FieldType::SINGLE_SELECT->value, $singleSelectItem['value']);
@@ -35,7 +42,7 @@ class FieldTypeTest extends TestCase
         $radioSelectItem = FieldType::RADIO_SELECT->toArray();
         $this->assertEquals(FieldType::RADIO_SELECT->value, $radioSelectItem['value']);
         $this->assertEquals(FieldType::RADIO_SELECT->getLabel(), $radioSelectItem['label']);
-        
+
         // 测试所有类型
         foreach (FieldType::cases() as $type) {
             $item = $type->toArray();
@@ -44,11 +51,11 @@ class FieldTypeTest extends TestCase
         }
     }
 
-    public function testGenOptions_返回所有枚举项的描述数组()
+    public function testGenOptions返回所有枚举项的描述数组(): void
     {
         $items = FieldType::genOptions();
         $this->assertGreaterThanOrEqual(count(FieldType::cases()), count($items));
-        
+
         // 验证第一个选项的结构
         $firstItem = $items[0];
         $this->assertArrayHasKey('label', $firstItem);
@@ -56,8 +63,8 @@ class FieldTypeTest extends TestCase
         $this->assertArrayHasKey('text', $firstItem);
         $this->assertArrayHasKey('name', $firstItem);
     }
-    
-    public function testToSelectItem_返回正确的选项数组()
+
+    public function testToSelectItem返回正确的选项数组(): void
     {
         $option = FieldType::STRING->toSelectItem();
         $this->assertEquals(FieldType::STRING->value, $option['value']);
@@ -65,15 +72,15 @@ class FieldTypeTest extends TestCase
         $this->assertEquals(FieldType::STRING->getLabel(), $option['text']);
         $this->assertEquals(FieldType::STRING->getLabel(), $option['name']);
     }
-    
-    public function testCases_返回所有枚举值()
+
+    public function testCases返回所有枚举值(): void
     {
         $cases = FieldType::cases();
         $this->assertGreaterThanOrEqual(15, count($cases)); // 至少有15种类型
-        
-        $values = array_map(fn($case) => $case->value, $cases);
+
+        $values = array_map(fn ($case) => $case->value, $cases);
         $this->assertContains('string', $values);
         $this->assertContains('integer', $values);
         $this->assertContains('date', $values);
     }
-} 
+}

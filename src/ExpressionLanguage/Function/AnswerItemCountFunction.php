@@ -1,15 +1,19 @@
 <?php
 
+declare(strict_types=1);
+
 namespace DiyFormBundle\ExpressionLanguage\Function;
 
 use DiyFormBundle\Entity\Record;
+use Monolog\Attribute\WithMonologChannel;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\ExpressionLanguage\ExpressionFunction;
 
 /**
  * 获取指定记录指定题号的回答数量
- * 例如第2题是多选题，那么 answerItemCount('2') 代表读取第2题的选中数量
+ * 例如第2题是多选题，那么 answerItemCount('2') 代表读取第2题的选中数量.
  */
+#[WithMonologChannel(channel: 'diy_form')]
 class AnswerItemCountFunction extends ExpressionFunction
 {
     protected Record $record;
@@ -34,7 +38,10 @@ class AnswerItemCountFunction extends ExpressionFunction
         return "answerItemCount({$number})";
     }
 
-    public function evaluator($arguments, string|int $number): int
+    /**
+     * @param array<string, mixed> $arguments
+     */
+    public function evaluator(array $arguments, string|int $number): int
     {
         $number = strval($number);
         $data = $this->getRecord()->obtainDataBySN($number);
