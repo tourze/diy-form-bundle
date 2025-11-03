@@ -62,12 +62,10 @@ final class DiyFormRecordCrudController extends AbstractCrudController
         ;
 
         yield AssociationField::new('user', '提交用户')
-            ->autocomplete()
             ->hideOnIndex()
         ;
 
         yield AssociationField::new('inviter', '邀请人')
-            ->autocomplete()
             ->hideOnIndex()
         ;
 
