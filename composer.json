@@ -61,7 +61,7 @@
     "tourze/lock-service-bundle": "1.0.*",
     "tourze/symfony-ecol-bundle": "1.0.*",
     "tourze/symfony-snowflake-bundle": "1.0.*",
-    "tourze/text-manage-bundle": "0.0.*",
+    "tourze/text-manage-bundle": "1.0.*",
     "tourze/user-avatar-bundle": "1.0.*",
     "tourze/user-event-bundle": "1.0.*",
     "tourze/user-id-bundle": "1.0.*",
