@@ -6,17 +6,31 @@ namespace DiyFormBundle\Service;
 
 use DiyFormBundle\Controller\SqlController;
 use DiyFormBundle\Controller\TestController;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Attribute\Route;
-use Symfony\Component\Routing\Loader\AttributeClassLoader;
+use Symfony\Bundle\FrameworkBundle\Routing\AttributeRouteControllerLoader;
+use Symfony\Component\Config\Loader\Loader;
+use Symfony\Component\DependencyInjection\Attribute\AutoconfigureTag;
 use Symfony\Component\Routing\RouteCollection;
+use Tourze\RoutingAutoLoaderBundle\Service\RoutingAutoLoaderInterface;
 
-/** @phpstan-ignore symplify.classNameRespectsParentSuffix */
-final class AttributeControllerLoader extends AbstractController
+#[AutoconfigureTag(name: 'routing.auto.loader')]
+final class AttributeControllerLoader extends Loader implements RoutingAutoLoaderInterface
 {
-    public function __construct(private AttributeClassLoader $controllerLoader)
+    private AttributeRouteControllerLoader $controllerLoader;
+
+    public function __construct()
     {
+        parent::__construct();
+        $this->controllerLoader = new AttributeRouteControllerLoader();
+    }
+
+    public function load(mixed $resource, ?string $type = null): RouteCollection
+    {
+        return $this->autoload();
+    }
+
+    public function supports(mixed $resource, ?string $type = null): bool
+    {
+        return 'attribute' === $type;
     }
 
     public function autoload(): RouteCollection
@@ -24,15 +38,7 @@ final class AttributeControllerLoader extends AbstractController
         $collection = new RouteCollection();
         $collection->addCollection($this->controllerLoader->load(SqlController::class));
         $collection->addCollection($this->controllerLoader->load(TestController::class));
-        $collection->addCollection($this->controllerLoader->load(AttributeControllerLoader::class));
 
         return $collection;
-    }
-
-    #[Route(path: '/diy-form-bundle')]
-    public function __invoke(): Response
-    {
-        // This service exists to satisfy PHPStan requirements for controllers with attributes
-        return new Response('DIY Form Bundle service loader');
     }
 }

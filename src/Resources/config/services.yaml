@@ -17,9 +17,3 @@ services:
     resource: '../../Repository/'
   DiyFormBundle\Service\:
     resource: '../../Service/'
-
-  # Alias for AttributeClassLoader service
-  Symfony\Component\Routing\Loader\AttributeClassLoader: '@routing.loader.attribute'
-
-  # 为 SmsService 提供 ContainerInterface
-  Psr\Container\ContainerInterface: '@service_container'

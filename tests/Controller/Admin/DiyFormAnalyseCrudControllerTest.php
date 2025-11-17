@@ -162,10 +162,4 @@ final class DiyFormAnalyseCrudControllerTest extends AbstractEasyAdminController
         // Verify Filters object is properly configured
         $this->assertIsObject($filters);
     }
-
-    public function testValidationErrors(): void
-    {
-        // 标记为不完整的测试，因为EasyAdmin的表单验证需要完整的浏览器环境
-        self::markTestIncomplete('EasyAdmin validation tests require full browser environment with form submission.');
-    }
 }

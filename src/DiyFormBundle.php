@@ -28,6 +28,7 @@ use Tourze\JsonRPCLogBundle\JsonRPCLogBundle;
 use Tourze\JsonRPCPaginatorBundle\JsonRPCPaginatorBundle;
 use Tourze\JsonRPCSecurityBundle\JsonRPCSecurityBundle;
 use Tourze\LockServiceBundle\LockServiceBundle;
+use Tourze\RoutingAutoLoaderBundle\RoutingAutoLoaderBundle;
 use Tourze\TextManageBundle\TextManageBundle;
 use Tourze\UserAvatarBundle\UserAvatarBundle;
 use Tourze\UserEventBundle\UserEventBundle;
@@ -64,6 +65,7 @@ class DiyFormBundle extends Bundle implements BundleDependencyInterface
             UserAvatarBundle::class => ['all' => true],
             UserEventBundle::class => ['all' => true],
             UserIDBundle::class => ['all' => true],
+            RoutingAutoLoaderBundle::class => ['all' => true],
         ];
     }
 }
