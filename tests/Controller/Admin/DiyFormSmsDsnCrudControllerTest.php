@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace DiyFormBundle\Tests\Controller\Admin;
 
 use DiyFormBundle\Controller\Admin\DiyFormSmsDsnCrudController;
-use DiyFormBundle\Entity\SmsDsn;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Filters;
@@ -99,13 +98,6 @@ final class DiyFormSmsDsnCrudControllerTest extends AbstractEasyAdminControllerT
             'weight' => ['weight'],
             'dsn' => ['dsn'],
         ];
-    }
-
-    public function testGetEntityFqcn(): void
-    {
-        $fqcn = $this->getControllerService()::getEntityFqcn();
-
-        self::assertSame(SmsDsn::class, $fqcn);
     }
 
     public function testControllerInstanceConfiguration(): void

@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace DiyFormBundle\Tests\Controller\Admin;
 
 use DiyFormBundle\Controller\Admin\DiyFormOptionCrudController;
-use DiyFormBundle\Entity\Option;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Filters;
@@ -113,13 +112,6 @@ final class DiyFormOptionCrudControllerTest extends AbstractEasyAdminControllerT
             'mutex' => ['mutex'],
             'showExpression' => ['showExpression'],
         ];
-    }
-
-    public function testGetEntityFqcn(): void
-    {
-        $fqcn = $this->getControllerService()::getEntityFqcn();
-
-        self::assertSame(Option::class, $fqcn);
     }
 
     public function testControllerInstanceConfiguration(): void

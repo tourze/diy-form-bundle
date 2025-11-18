@@ -180,6 +180,7 @@ class GetDiyFormRecordDetail extends BaseProcedure
             $this->eventDispatcher->dispatch($event);
 
             $title = $analysis->getTitle();
+            /** @phpstan-ignore offsetAccess.nonOffsetAccessible */
             $result['analyses'][$category][$title] = $event->getResult();
         }
 

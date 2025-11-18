@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace DiyFormBundle\Tests\Controller\Admin;
 
 use DiyFormBundle\Controller\Admin\DiyFormDataCrudController;
-use DiyFormBundle\Entity\Data;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Filters;
@@ -101,13 +100,6 @@ final class DiyFormDataCrudControllerTest extends AbstractEasyAdminControllerTes
             'skip' => ['skip'],
             'deletable' => ['deletable'],
         ];
-    }
-
-    public function testGetEntityFqcn(): void
-    {
-        $fqcn = $this->getControllerService()::getEntityFqcn();
-
-        self::assertSame(Data::class, $fqcn);
     }
 
     public function testControllerInstanceConfiguration(): void

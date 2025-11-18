@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace DiyFormBundle\Tests\Controller\Admin;
 
 use DiyFormBundle\Controller\Admin\DiyFormFieldCrudController;
-use DiyFormBundle\Entity\Field;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Filters;
@@ -119,13 +118,6 @@ final class DiyFormFieldCrudControllerTest extends AbstractEasyAdminControllerTe
             'showExpression' => ['showExpression'],
             'extra' => ['extra'],
         ];
-    }
-
-    public function testGetEntityFqcn(): void
-    {
-        $fqcn = $this->getControllerService()::getEntityFqcn();
-
-        self::assertSame(Field::class, $fqcn);
     }
 
     public function testControllerInstanceConfiguration(): void

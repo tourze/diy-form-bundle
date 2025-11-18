@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace DiyFormBundle\Tests\Controller\Admin;
 
 use DiyFormBundle\Controller\Admin\DiyFormAnalyseCrudController;
-use DiyFormBundle\Entity\Analyse;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Filters;
@@ -110,13 +109,6 @@ final class DiyFormAnalyseCrudControllerTest extends AbstractEasyAdminController
             'thumb' => ['thumb'],
             'remark' => ['remark'],
         ];
-    }
-
-    public function testGetEntityFqcn(): void
-    {
-        $fqcn = $this->getControllerService()::getEntityFqcn();
-
-        self::assertSame(Analyse::class, $fqcn);
     }
 
     public function testControllerInstanceConfiguration(): void

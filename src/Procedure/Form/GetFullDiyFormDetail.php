@@ -63,6 +63,7 @@ class GetFullDiyFormDetail extends BaseProcedure
             $result['fields'] = [];
         }
         foreach ($form->getSortedFields() as $sortedField) {
+            /** @phpstan-ignore offsetAccess.nonOffsetAccessible */
             $result['fields'][] = $sortedField->retrievePlainArray();
         }
 

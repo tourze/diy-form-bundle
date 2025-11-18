@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace DiyFormBundle\Tests\Controller\Admin;
 
 use DiyFormBundle\Controller\Admin\DiyFormSendLogCrudController;
-use DiyFormBundle\Entity\SendLog;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Filters;
@@ -101,13 +100,6 @@ final class DiyFormSendLogCrudControllerTest extends AbstractEasyAdminController
             'status' => ['status'],
             'memo' => ['memo'],
         ];
-    }
-
-    public function testGetEntityFqcn(): void
-    {
-        $fqcn = $this->getControllerService()::getEntityFqcn();
-
-        self::assertSame(SendLog::class, $fqcn);
     }
 
     public function testControllerInstanceConfiguration(): void

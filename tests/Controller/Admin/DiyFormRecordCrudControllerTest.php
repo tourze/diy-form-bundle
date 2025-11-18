@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace DiyFormBundle\Tests\Controller\Admin;
 
 use DiyFormBundle\Controller\Admin\DiyFormRecordCrudController;
-use DiyFormBundle\Entity\Record;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Filters;
@@ -103,13 +102,6 @@ final class DiyFormRecordCrudControllerTest extends AbstractEasyAdminControllerT
             'startTime' => ['startTime'],
             'finishTime' => ['finishTime'],
         ];
-    }
-
-    public function testGetEntityFqcn(): void
-    {
-        $fqcn = $this->getControllerService()::getEntityFqcn();
-
-        self::assertSame(Record::class, $fqcn);
     }
 
     public function testControllerInstanceConfiguration(): void

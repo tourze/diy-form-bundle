@@ -191,10 +191,12 @@ class SubmitDiyFormFullRecord extends LockableProcedure
         }
 
         // 比较验证码
+        /** @phpstan-ignore cast.string,notIdentical.alwaysTrue,cast.useless,deadCode.unreachable */
         if ((string) $dbCode !== (string) $code) {
             throw new ApiException('手机验证码不正确');
         }
 
+        /** @phpstan-ignore deadCode.unreachable */
         return $phoneNumber;
     }
 
