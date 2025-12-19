@@ -16,8 +16,6 @@ use Tourze\PHPUnitSymfonyWebTest\AbstractEasyAdminControllerTestCase;
 
 /**
  * @internal
- *
- * @phpstan-ignore-next-line Controller有必填字段但缺少验证测试 (EasyAdmin表单验证需要完整浏览器环境，标记为不完整)
  */
 #[CoversClass(DiyFormRecordCrudController::class)]
 #[RunTestsInSeparateProcesses]
@@ -147,7 +145,21 @@ final class DiyFormRecordCrudControllerTest extends AbstractEasyAdminControllerT
 
     public function testValidationErrors(): void
     {
-        // 标记为不完整的测试，因为EasyAdmin的表单验证需要完整的浏览器环境
-        self::markTestIncomplete('EasyAdmin validation tests require full browser environment with form submission.');
+        $client = self::createAuthenticatedClient();
+
+        // 访问新建页面（如果 NEW 操作启用）
+        try {
+            $crawler = $client->request('GET', $this->generateAdminUrl('new'));
+            $form = $crawler->selectButton('Save changes')->form();
+
+            // 提交空表单以触发验证错误
+            $client->submit($form);
+
+            // 验证响应状态码表示验证失败
+            $this->assertResponseStatusCodeSame(422);
+        } catch (\InvalidArgumentException) {
+            // NEW 操作被禁用时跳过测试
+            self::markTestSkipped('NEW action is disabled for this controller.');
+        }
     }
 }

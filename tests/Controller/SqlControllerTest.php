@@ -97,7 +97,6 @@ final class SqlControllerTest extends AbstractWebTestCase
 
         $this->expectException(NotFoundHttpException::class);
 
-        // @phpstan-ignore-next-line request() 方法的第一个参数在这里必须是变量，因为我们在测试不同的HTTP方法
         $client->request($method, '/diy-form-sql/100');
     }
 }

@@ -6,7 +6,7 @@ namespace DiyFormBundle\Event;
 
 use Symfony\Contracts\EventDispatcher\Event;
 
-class FieldFormatEvent extends Event
+final class FieldFormatEvent extends Event
 {
     use RecordAware;
     use FieldAware;

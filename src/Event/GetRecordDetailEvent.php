@@ -6,7 +6,7 @@ namespace DiyFormBundle\Event;
 
 use Symfony\Contracts\EventDispatcher\Event;
 
-class GetRecordDetailEvent extends Event
+final class GetRecordDetailEvent extends Event
 {
     use RecordAware;
 

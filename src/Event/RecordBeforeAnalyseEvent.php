@@ -9,7 +9,7 @@ use Symfony\Contracts\EventDispatcher\Event;
 /**
  * 开始分析记录时触发.
  */
-class RecordBeforeAnalyseEvent extends Event
+final class RecordBeforeAnalyseEvent extends Event
 {
     use RecordAware;
 

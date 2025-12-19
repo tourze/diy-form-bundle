@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace DiyFormBundle\Tests\ExpressionLanguage;
 
+use DiyFormBundle\Entity\Form;
 use DiyFormBundle\Entity\Record;
 use DiyFormBundle\ExpressionLanguage\DiyFormFunctionProvider;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -29,6 +30,27 @@ final class DiyFormFunctionProviderTest extends AbstractIntegrationTestCase
         return $this->provider ??= self::getService(DiyFormFunctionProvider::class);
     }
 
+    private function createFormAndRecord(): Record
+    {
+        $form = new Form();
+        $form->setTitle('测试表单-' . uniqid());
+        $form->setValid(true);
+        $form->setStartTime(new \DateTimeImmutable());
+        $form->setEndTime(new \DateTimeImmutable('+1 hour'));
+
+        $record = new Record();
+        $record->setForm($form);
+        $record->setStartTime(new \DateTimeImmutable());
+        $record->setFinished(false);
+
+        $em = self::getEntityManager();
+        $em->persist($form);
+        $em->persist($record);
+        $em->flush();
+
+        return $record;
+    }
+
     public function testGetFunctions未设置上下文时返回空数组(): void
     {
         $functions = $this->getProvider()->getFunctions();
@@ -38,13 +60,8 @@ final class DiyFormFunctionProviderTest extends AbstractIntegrationTestCase
 
     public function testSetContextAndGetFunctions设置上下文后返回正确函数数量(): void
     {
-        /*
-         * 1. 必须使用具体类 Record::class 而不是接口：需要模拟 Record 实体
-         *    来测试表达式函数提供者的上下文设置功能
-         * 2. 使用合理性：合理且必要，Record 是表达式上下文的核心数据载体
-         * 3. 替代方案：真实 Record 需要完整的数据关联，mock 更适合单元测试
-         */
-        $record = $this->createMock(Record::class);
+        // 创建真实的 Record 实体用于测试
+        $record = $this->createFormAndRecord();
         $answerTags = ['tag1' => 'value1'];
 
         $provider = $this->getProvider();
@@ -57,13 +74,8 @@ final class DiyFormFunctionProviderTest extends AbstractIntegrationTestCase
 
     public function testSetContext正确设置记录和标签(): void
     {
-        /*
-         * 1. 必须使用具体类 Record::class 而不是接口：需要模拟 Record 实体
-         *    来测试表达式上下文的记录和标签设置正确性
-         * 2. 使用合理性：合理且必要，Record 是表达式计算的数据基础
-         * 3. 替代方案：真实 Record 设置复杂，mock 能精确控制测试数据
-         */
-        $record = $this->createMock(Record::class);
+        // 创建真实的 Record 实体用于测试
+        $record = $this->createFormAndRecord();
         $answerTags = ['tag1' => 'value1', 'tag2' => 'value2'];
 
         $provider = $this->getProvider();
@@ -79,13 +91,8 @@ final class DiyFormFunctionProviderTest extends AbstractIntegrationTestCase
 
     public function testGetFunctions创建正确的表达式函数类型(): void
     {
-        /*
-         * 1. 必须使用具体类 Record::class 而不是接口：需要模拟 Record 实体
-         *    来测试表达式函数的创建和类型验证
-         * 2. 使用合理性：合理且必要，函数创建需要记录上下文支持
-         * 3. 替代方案：真实 Record 需要数据库支持，mock 更适合类型测试
-         */
-        $record = $this->createMock(Record::class);
+        // 创建真实的 Record 实体用于测试
+        $record = $this->createFormAndRecord();
         $answerTags = [];
 
         $provider = $this->getProvider();

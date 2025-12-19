@@ -4,15 +4,17 @@ declare(strict_types=1);
 
 namespace DiyFormBundle\Procedure\Record;
 
+use DiyFormBundle\Param\Record\DeleteDiyFormRecordParam;
 use DiyFormBundle\Repository\RecordRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Tourze\JsonRPC\Core\Attribute\MethodDoc;
 use Tourze\JsonRPC\Core\Attribute\MethodExpose;
-use Tourze\JsonRPC\Core\Attribute\MethodParam;
 use Tourze\JsonRPC\Core\Attribute\MethodTag;
+use Tourze\JsonRPC\Core\Contracts\RpcParamInterface;
 use Tourze\JsonRPC\Core\Exception\ApiException;
+use Tourze\JsonRPC\Core\Result\ArrayResult;
 use Tourze\JsonRPCLockBundle\Procedure\LockableProcedure;
 use Tourze\JsonRPCLogBundle\Attribute\Log;
 
@@ -23,9 +25,6 @@ use Tourze\JsonRPCLogBundle\Attribute\Log;
 #[Log]
 class DeleteDiyFormRecord extends LockableProcedure
 {
-    #[MethodParam(description: '记录ID')]
-    public string $recordId;
-
     public function __construct(
         private readonly RecordRepository $recordRepository,
         private readonly EntityManagerInterface $entityManager,
@@ -33,10 +32,13 @@ class DeleteDiyFormRecord extends LockableProcedure
     ) {
     }
 
-    public function execute(): array
+    /**
+     * @phpstan-param DeleteDiyFormRecordParam $param
+     */
+    public function execute(DeleteDiyFormRecordParam|RpcParamInterface $param): ArrayResult
     {
         $record = $this->recordRepository->findOneBy([
-            'id' => $this->recordId,
+            'id' => $param->recordId,
             'user' => $this->security->getUser(),
         ]);
         if (null === $record) {
@@ -46,8 +48,8 @@ class DeleteDiyFormRecord extends LockableProcedure
         $this->entityManager->remove($record);
         $this->entityManager->flush();
 
-        return [
+        return new ArrayResult([
             '__message' => '删除成功',
-        ];
+        ]);
     }
 }

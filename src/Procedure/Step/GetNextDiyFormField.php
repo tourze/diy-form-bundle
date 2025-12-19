@@ -6,9 +6,11 @@ namespace DiyFormBundle\Procedure\Step;
 
 use DiyFormBundle\Entity\Data;
 use DiyFormBundle\Entity\Form;
+use DiyFormBundle\Entity\Option;
 use DiyFormBundle\Entity\Record;
 use DiyFormBundle\Event\FieldFormatEvent;
 use DiyFormBundle\Event\OptionsFormatEvent;
+use DiyFormBundle\Param\Step\GetNextDiyFormFieldParam;
 use DiyFormBundle\Repository\DataRepository;
 use DiyFormBundle\Repository\FormRepository;
 use DiyFormBundle\Repository\RecordRepository;
@@ -19,13 +21,13 @@ use Psr\Log\LoggerInterface;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\ExpressionLanguage\SyntaxError;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
-use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 use Tourze\JsonRPC\Core\Attribute\MethodDoc;
 use Tourze\JsonRPC\Core\Attribute\MethodExpose;
-use Tourze\JsonRPC\Core\Attribute\MethodParam;
 use Tourze\JsonRPC\Core\Attribute\MethodTag;
+use Tourze\JsonRPC\Core\Contracts\RpcParamInterface;
 use Tourze\JsonRPC\Core\Exception\ApiException;
+use Tourze\JsonRPC\Core\Result\ArrayResult;
 use Tourze\JsonRPCLockBundle\Procedure\LockableProcedure;
 use Tourze\JsonRPCLogBundle\Attribute\Log;
 
@@ -37,16 +39,9 @@ use Tourze\JsonRPCLogBundle\Attribute\Log;
 #[WithMonologChannel(channel: 'procedure')]
 class GetNextDiyFormField extends LockableProcedure
 {
-    #[MethodParam(description: '表单ID')]
-    public int $formId = 2;
-
-    #[MethodParam(description: '记录ID')]
-    public int $recordId;
-
     public function __construct(
         private readonly FormRepository $formRepository,
         private readonly RecordRepository $recordRepository,
-        private readonly NormalizerInterface $normalizer,
         private readonly SessionService $sessionService,
         private readonly DataRepository $dataRepository,
         private readonly Security $security,
@@ -56,12 +51,12 @@ class GetNextDiyFormField extends LockableProcedure
     }
 
     /**
-     * @return array<string, mixed>
+     * @phpstan-param GetNextDiyFormFieldParam $param
      */
-    public function execute(): array
+    public function execute(GetNextDiyFormFieldParam|RpcParamInterface $param): ArrayResult
     {
-        $form = $this->validateAndGetForm();
-        $record = $this->validateAndGetRecord($form);
+        $form = $this->validateAndGetForm($param);
+        $record = $this->validateAndGetRecord($form, $param);
         $nextField = $this->getNextField($record);
 
         $result = $this->buildBasicResult($nextField);
@@ -71,26 +66,26 @@ class GetNextDiyFormField extends LockableProcedure
             $result = $this->addFieldData($result, $record, $nextField);
         }
 
-        return $result;
+        return new ArrayResult($result);
     }
 
-    private function validateAndGetForm(): Form
+    private function validateAndGetForm(GetNextDiyFormFieldParam $param): Form
     {
         $form = $this->formRepository->findOneBy([
-            'id' => $this->formId,
+            'id' => $param->formId,
             'valid' => true,
         ]);
         if (null === $form) {
             throw new ApiException('找不到表单');
         }
 
-        return $form;
+        return new ArrayResult($form);
     }
 
-    private function validateAndGetRecord(Form $form): Record
+    private function validateAndGetRecord(Form $form, GetNextDiyFormFieldParam $param): Record
     {
         $record = $this->recordRepository->findOneBy([
-            'id' => $this->recordId,
+            'id' => $param->recordId,
             'form' => $form,
             'user' => $this->security->getUser(),
         ]);
@@ -98,7 +93,7 @@ class GetNextDiyFormField extends LockableProcedure
             throw new ApiException('找不到答题记录');
         }
 
-        return $record;
+        return new ArrayResult($record);
     }
 
     private function getNextField(Record $record): ?NextField
@@ -126,12 +121,12 @@ class GetNextDiyFormField extends LockableProcedure
             $showBack = $nextField->isShowBack();
         }
 
-        return [
+        return new ArrayResult([
             'hasNext' => null !== $nextField,
             'answerTags' => $answerTags,
             'showBack' => null !== $nextField && $showBack,
             'showConfirm' => true,
-        ];
+        ]);
     }
 
     /**
@@ -153,7 +148,7 @@ class GetNextDiyFormField extends LockableProcedure
             $result['showBack'] = $lastData->isDeletable();
         }
 
-        return $result;
+        return new ArrayResult($result);
     }
 
     /**
@@ -165,7 +160,7 @@ class GetNextDiyFormField extends LockableProcedure
         $result['field'] = $this->getFieldData($record, $nextField);
         $result['options'] = $this->getOptionsData($record, $nextField);
 
-        return $result;
+        return new ArrayResult($result);
     }
 
     /**
@@ -177,19 +172,14 @@ class GetNextDiyFormField extends LockableProcedure
         $event->setRecord($record);
         $event->setField($nextField->getField());
 
-        $fieldResult = $this->normalizer->normalize($nextField->getField(), 'array', ['groups' => 'restful_read']);
-        if (!is_array($fieldResult)) {
-            throw new \RuntimeException('Failed to normalize field to array');
-        }
-        /** @var array<string, mixed> $fieldResult */
-        $event->setResult($fieldResult);
+        $event->setResult($nextField->getField()->retrieveApiArray());
         $this->eventDispatcher->dispatch($event);
 
         return $event->getResult();
     }
 
     /**
-     * @return array<string, mixed>
+     * @return array<int, array<string, mixed>>
      */
     private function getOptionsData(Record $record, NextField $nextField): array
     {
@@ -198,11 +188,11 @@ class GetNextDiyFormField extends LockableProcedure
         $event->setField($nextField->getField());
         $event->setOptions($nextField->getOptions());
 
-        $optionsResult = $this->normalizer->normalize($nextField->getOptions(), 'array', ['groups' => 'restful_read']);
-        if (!is_array($optionsResult)) {
-            throw new \RuntimeException('Failed to normalize options to array');
-        }
-        /** @var array<string, mixed> $optionsResult */
+        $optionsResult = array_map(
+            fn (Option $option): array => $option->retrieveApiArray(),
+            $nextField->getOptions()
+        );
+
         $event->setResult($optionsResult);
         $this->eventDispatcher->dispatch($event);
 

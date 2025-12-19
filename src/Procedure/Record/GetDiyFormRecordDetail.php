@@ -5,26 +5,28 @@ declare(strict_types=1);
 namespace DiyFormBundle\Procedure\Record;
 
 use DiyFormBundle\Entity\Analyse;
+use DiyFormBundle\Entity\Data;
 use DiyFormBundle\Entity\Record;
 use DiyFormBundle\Event\GetRecordDetailEvent;
 use DiyFormBundle\Event\RecordAfterAnalyseEvent;
 use DiyFormBundle\Event\RecordAnalyseTriggerEvent;
 use DiyFormBundle\Event\RecordBeforeAnalyseEvent;
 use DiyFormBundle\Event\RecordFormatEvent;
+use DiyFormBundle\Param\Record\GetDiyFormRecordDetailParam;
 use DiyFormBundle\Repository\RecordRepository;
 use DiyFormBundle\Service\ExpressionEngineService;
 use DiyFormBundle\Service\TagCalculator;
 use Monolog\Attribute\WithMonologChannel;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
-use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 use Tourze\JsonRPC\Core\Attribute\MethodDoc;
 use Tourze\JsonRPC\Core\Attribute\MethodExpose;
-use Tourze\JsonRPC\Core\Attribute\MethodParam;
 use Tourze\JsonRPC\Core\Attribute\MethodTag;
+use Tourze\JsonRPC\Core\Contracts\RpcParamInterface;
 use Tourze\JsonRPC\Core\Exception\ApiException;
 use Tourze\JsonRPC\Core\Procedure\BaseProcedure;
+use Tourze\JsonRPC\Core\Result\ArrayResult;
 
 #[IsGranted(attribute: 'IS_AUTHENTICATED_FULLY')]
 #[MethodDoc(summary: '获取用户的表单提交记录')]
@@ -33,12 +35,8 @@ use Tourze\JsonRPC\Core\Procedure\BaseProcedure;
 #[WithMonologChannel(channel: 'procedure')]
 class GetDiyFormRecordDetail extends BaseProcedure
 {
-    #[MethodParam(description: '记录ID')]
-    public string $recordId;
-
     public function __construct(
         private readonly RecordRepository $recordRepository,
-        private readonly NormalizerInterface $normalizer,
         private readonly ExpressionEngineService $expressionService,
         private readonly TagCalculator $tagCalculator,
         private readonly EventDispatcherInterface $eventDispatcher,
@@ -46,19 +44,22 @@ class GetDiyFormRecordDetail extends BaseProcedure
     ) {
     }
 
-    public function execute(): array
+    /**
+     * @phpstan-param GetDiyFormRecordDetailParam $param
+     */
+    public function execute(GetDiyFormRecordDetailParam|RpcParamInterface $param): ArrayResult
     {
-        $record = $this->findRecord();
+        $record = $this->findRecord($param);
         $result = $this->formatRecord($record);
         $result = $this->processAnalyses($record, $result);
 
         return $this->finalizeResult($record, $result);
     }
 
-    private function findRecord(): Record
+    private function findRecord(GetDiyFormRecordDetailParam $param): Record
     {
         $record = $this->recordRepository->findOneBy([
-            'id' => $this->recordId,
+            'id' => $param->recordId,
             // TODO 因为去除了用户条件判断，所以这里有平行绕过漏洞
         ]);
 
@@ -66,7 +67,7 @@ class GetDiyFormRecordDetail extends BaseProcedure
             throw new ApiException('查找不到提交记录');
         }
 
-        return $record;
+        return new ArrayResult($record);
     }
 
     /**
@@ -76,17 +77,37 @@ class GetDiyFormRecordDetail extends BaseProcedure
     {
         $event = new RecordFormatEvent();
         $event->setRecord($record);
-        $normalizedResult = $this->normalizer->normalize($record, 'array', ['groups' => 'restful_read']);
 
-        if (!is_array($normalizedResult)) {
-            throw new \InvalidArgumentException('Failed to normalize record to array');
-        }
+        $result = [
+            'finished' => $record->isFinished(),
+            'startTime' => $record->getStartTime()?->format('c'),
+            'finishTime' => $record->getFinishTime()?->format('c'),
+            'dataList' => $this->formatDataList($record->getDataList()),
+        ];
 
-        /** @var array<string, mixed> $normalizedResult */
-        $event->setResult($normalizedResult);
+        $event->setResult($result);
         $this->eventDispatcher->dispatch($event);
 
         return $event->getResult();
+    }
+
+    /**
+     * @param array<string, Data> $dataList
+     * @return array<string, array<string, mixed>>
+     */
+    private function formatDataList(array $dataList): array
+    {
+        $result = [];
+        foreach ($dataList as $sn => $data) {
+            $result[$sn] = [
+                'field' => $data->getField()?->retrieveApiArray(),
+                'input' => $data->getInput(),
+                'inputArray' => $data->getInputArray(),
+                'skip' => $data->isSkip(),
+            ];
+        }
+
+        return new ArrayResult($result);
     }
 
     /**
@@ -108,7 +129,7 @@ class GetDiyFormRecordDetail extends BaseProcedure
             $result = $this->processRecordAnalyses($record, $result);
         }
 
-        return $result;
+        return new ArrayResult($result);
     }
 
     /**
@@ -121,14 +142,14 @@ class GetDiyFormRecordDetail extends BaseProcedure
 
         $form = $record->getForm();
         if (null === $form) {
-            return $result;
+            return new ArrayResult($result);
         }
 
         foreach ($form->getSortedAnalyses() as $analysis) {
             $result = $this->processAnalysis($analysis, $record, $answerTags, $result);
         }
 
-        return $result;
+        return new ArrayResult($result);
     }
 
     /**
@@ -167,12 +188,8 @@ class GetDiyFormRecordDetail extends BaseProcedure
                 $result['analyses'][$category] = [];
             }
 
-            $tmp = $this->normalizer->normalize($analysis, 'array', ['groups' => 'restful_read']);
-            if (!is_array($tmp)) {
-                throw new \InvalidArgumentException('Failed to normalize analysis to array');
-            }
+            $tmp = $analysis->retrieveApiArray();
 
-            /** @var array<string, mixed> $tmp */
             $event = new RecordAnalyseTriggerEvent();
             $event->setAnalyse($analysis);
             $event->setRecord($record);
@@ -180,11 +197,14 @@ class GetDiyFormRecordDetail extends BaseProcedure
             $this->eventDispatcher->dispatch($event);
 
             $title = $analysis->getTitle();
-            /** @phpstan-ignore offsetAccess.nonOffsetAccessible */
-            $result['analyses'][$category][$title] = $event->getResult();
+            // 获取类型安全的 analyses 数组
+            /** @var array<string, array<string, mixed>> $analyses */
+            $analyses = $result['analyses'];
+            $analyses[$category][$title] = $event->getResult();
+            $result['analyses'] = $analyses;
         }
 
-        return $result;
+        return new ArrayResult($result);
     }
 
     /**

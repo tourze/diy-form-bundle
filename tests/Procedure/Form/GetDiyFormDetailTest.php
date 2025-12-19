@@ -7,7 +7,7 @@ namespace DiyFormBundle\Tests\Procedure\Form;
 use DiyFormBundle\Procedure\Form\GetDiyFormDetail;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
-use Tourze\JsonRPC\Core\Tests\AbstractProcedureTestCase;
+use Tourze\PHPUnitJsonRPC\AbstractProcedureTestCase;
 
 /**
  * @internal

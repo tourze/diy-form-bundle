@@ -7,7 +7,7 @@ namespace DiyFormBundle\Tests\Procedure\Step;
 use DiyFormBundle\Procedure\Step\AnswerSingleDiyFormQuestion;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
-use Tourze\JsonRPC\Core\Tests\AbstractProcedureTestCase;
+use Tourze\PHPUnitJsonRPC\AbstractProcedureTestCase;
 
 /**
  * @internal

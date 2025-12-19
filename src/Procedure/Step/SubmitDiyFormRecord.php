@@ -6,6 +6,7 @@ namespace DiyFormBundle\Procedure\Step;
 
 use Carbon\CarbonImmutable;
 use DiyFormBundle\Event\SubmitRecordEvent;
+use DiyFormBundle\Param\Step\SubmitDiyFormRecordParam;
 use DiyFormBundle\Repository\FormRepository;
 use DiyFormBundle\Repository\RecordRepository;
 use DiyFormBundle\Service\TagCalculator;
@@ -15,9 +16,10 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 use Tourze\JsonRPC\Core\Attribute\MethodDoc;
 use Tourze\JsonRPC\Core\Attribute\MethodExpose;
-use Tourze\JsonRPC\Core\Attribute\MethodParam;
 use Tourze\JsonRPC\Core\Attribute\MethodTag;
+use Tourze\JsonRPC\Core\Contracts\RpcParamInterface;
 use Tourze\JsonRPC\Core\Exception\ApiException;
+use Tourze\JsonRPC\Core\Result\ArrayResult;
 use Tourze\JsonRPCLockBundle\Procedure\LockableProcedure;
 use Tourze\JsonRPCLogBundle\Attribute\Log;
 
@@ -28,12 +30,6 @@ use Tourze\JsonRPCLogBundle\Attribute\Log;
 #[Log]
 class SubmitDiyFormRecord extends LockableProcedure
 {
-    #[MethodParam(description: '表单ID')]
-    public int $formId = 2;
-
-    #[MethodParam(description: '记录ID，通过CreateDiyFormRecord接口获得')]
-    public int $recordId;
-
     public function __construct(
         private readonly FormRepository $formRepository,
         private readonly RecordRepository $recordRepository,
@@ -44,10 +40,13 @@ class SubmitDiyFormRecord extends LockableProcedure
     ) {
     }
 
-    public function execute(): array
+    /**
+     * @phpstan-param SubmitDiyFormRecordParam $param
+     */
+    public function execute(SubmitDiyFormRecordParam|RpcParamInterface $param): ArrayResult
     {
         $form = $this->formRepository->findOneBy([
-            'id' => $this->formId,
+            'id' => $param->formId,
             'valid' => true,
         ]);
         if (null === $form) {
@@ -55,7 +54,7 @@ class SubmitDiyFormRecord extends LockableProcedure
         }
 
         $record = $this->recordRepository->findOneBy([
-            'id' => $this->recordId,
+            'id' => $param->recordId,
             'user' => $this->security->getUser(),
         ]);
         if (null === $record) {
@@ -78,9 +77,9 @@ class SubmitDiyFormRecord extends LockableProcedure
         $event->setRecord($record);
         $this->eventDispatcher->dispatch($event);
 
-        return [
+        return new ArrayResult([
             '__message' => '提交成功',
             'recordId' => $record->getId(),
-        ];
+        ]);
     }
 }

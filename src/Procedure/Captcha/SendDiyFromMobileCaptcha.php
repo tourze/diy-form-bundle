@@ -8,6 +8,7 @@ use Carbon\CarbonImmutable;
 use DiyFormBundle\Entity\Form;
 use DiyFormBundle\Event\SendMobileCaptchaEvent;
 use DiyFormBundle\Notifier\Message\SmsTemplateMessage;
+use DiyFormBundle\Param\Captcha\SendDiyFromMobileCaptchaParam;
 use DiyFormBundle\Repository\FormRepository;
 use DiyFormBundle\Service\PhoneNumberService;
 use DiyFormBundle\Service\SmsService;
@@ -16,9 +17,10 @@ use Symfony\Contracts\Cache\CacheInterface;
 use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 use Tourze\JsonRPC\Core\Attribute\MethodDoc;
 use Tourze\JsonRPC\Core\Attribute\MethodExpose;
-use Tourze\JsonRPC\Core\Attribute\MethodParam;
 use Tourze\JsonRPC\Core\Attribute\MethodTag;
+use Tourze\JsonRPC\Core\Contracts\RpcParamInterface;
 use Tourze\JsonRPC\Core\Exception\ApiException;
+use Tourze\JsonRPC\Core\Result\ArrayResult;
 use Tourze\JsonRPCLockBundle\Procedure\LockableProcedure;
 use Tourze\JsonRPCLogBundle\Attribute\Log;
 use Tourze\TextManageBundle\Service\TextFormatter;
@@ -30,12 +32,6 @@ use Tourze\UserIDBundle\Model\SystemUser;
 #[Log]
 class SendDiyFromMobileCaptcha extends LockableProcedure
 {
-    #[MethodParam(description: '表单ID')]
-    public string $formId;
-
-    #[MethodParam(description: '手机号码')]
-    public string $phoneNumber;
-
     public function __construct(
         private readonly FormRepository $formRepository,
         private readonly SmsService $smsService,
@@ -47,10 +43,13 @@ class SendDiyFromMobileCaptcha extends LockableProcedure
     ) {
     }
 
-    public function execute(): array
+    /**
+     * @phpstan-param SendDiyFromMobileCaptchaParam $param
+     */
+    public function execute(SendDiyFromMobileCaptchaParam|RpcParamInterface $param): ArrayResult
     {
         $form = $this->formRepository->findOneBy([
-            'id' => $this->formId,
+            'id' => $param->formId,
             'valid' => true,
         ]);
         if (null === $form) {
@@ -66,7 +65,7 @@ class SendDiyFromMobileCaptcha extends LockableProcedure
 
         $event = new SendMobileCaptchaEvent();
         $event->setForm($form);
-        $event->setPhoneNumber($this->phoneNumber);
+        $event->setPhoneNumber($param->phoneNumber);
         $event->setCode($code);
         $event->setSender(SystemUser::instance());
 
@@ -90,7 +89,7 @@ class SendDiyFromMobileCaptcha extends LockableProcedure
             ];
 
             $sms = new SmsTemplateMessage(
-                $this->phoneNumber,
+                $param->phoneNumber,
                 $this->textFormatter->formatText('您的验证码是：{{ code }}', $params),
             );
             $templateParams = [
@@ -102,13 +101,13 @@ class SendDiyFromMobileCaptcha extends LockableProcedure
         }
 
         // 将手机号码/表单合并成一个key存储起来
-        $captchaKey = $this->phoneNumberService->buildCaptchaCacheKey($form, $this->phoneNumber);
+        $captchaKey = $this->phoneNumberService->buildCaptchaCacheKey($form, $param->phoneNumber);
         $this->cache->get($captchaKey, function () use ($code) {
-            return $code;
+            return new ArrayResult($code);
         }, 60 * 60);
 
-        return [
+        return new ArrayResult([
             '__message' => '发送成功',
-        ];
+        ]);
     }
 }

@@ -7,36 +7,50 @@ namespace DiyFormBundle\Tests\Service;
 use DiyFormBundle\Entity\Form;
 use DiyFormBundle\Service\PhoneNumberService;
 use PHPUnit\Framework\Attributes\CoversClass;
-use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
+use Tourze\PHPUnitSymfonyKernelTest\AbstractIntegrationTestCase;
 
 /**
  * @internal
  */
 #[CoversClass(PhoneNumberService::class)]
-final class PhoneNumberServiceTest extends TestCase
+#[RunTestsInSeparateProcesses]
+final class PhoneNumberServiceTest extends AbstractIntegrationTestCase
 {
-    private PhoneNumberService $phoneNumberService;
+    protected function onSetUp(): void
+    {
+        // 集成测试基类要求的初始化方法
+    }
 
     private function getPhoneNumberService(): PhoneNumberService
     {
-        return $this->phoneNumberService ??= new PhoneNumberService();
+        return self::getService(PhoneNumberService::class);
+    }
+
+    private function createForm(string $title): Form
+    {
+        $form = new Form();
+        $form->setTitle($title);
+        $form->setValid(true);
+        $form->setStartTime(new \DateTimeImmutable());
+        $form->setEndTime(new \DateTimeImmutable('+1 hour'));
+
+        $em = self::getEntityManager();
+        $em->persist($form);
+        $em->flush();
+
+        return $form;
     }
 
     public function testBuildCaptchaCacheKey基本电话号码(): void
     {
-        /*
-         * 模拟Form实体进行测试：
-         * 1. Form是Doctrine实体，代表表单定义
-         * 2. PhoneNumberService需要表单ID来构建验证码缓存key
-         * 3. 测试时使用Mock可控制ID返回值，保证测试的可预测性
-         */
-        // 创建表单模拟对象
-        $form = $this->createMock(Form::class);
-        $form->method('getId')->willReturn(123);
+        // 创建真实的Form实体并持久化到数据库
+        $form = $this->createForm('测试表单基本-' . uniqid());
+        $formId = $form->getId();
 
         $phoneNumber = '13800138000';
 
-        $expected = 'DiyFormBundle_captcha_13800138000_123';
+        $expected = "DiyFormBundle_captcha_{$phoneNumber}_{$formId}";
         $actual = $this->getPhoneNumberService()->buildCaptchaCacheKey($form, $phoneNumber);
 
         $this->assertEquals($expected, $actual);
@@ -44,19 +58,13 @@ final class PhoneNumberServiceTest extends TestCase
 
     public function testBuildCaptchaCacheKey包含特殊字符的号码(): void
     {
-        /*
-         * 模拟Form实体进行测试：
-         * 1. Form是Doctrine实体，代表表单定义
-         * 2. PhoneNumberService需要表单ID来构建验证码缓存key
-         * 3. 测试时使用Mock可控制ID返回值，保证测试的可预测性
-         */
-        // 创建表单模拟对象
-        $form = $this->createMock(Form::class);
-        $form->method('getId')->willReturn(456);
+        // 创建真实的Form实体并持久化到数据库
+        $form = $this->createForm('测试表单特殊字符-' . uniqid());
+        $formId = $form->getId();
 
         $phoneNumber = '+86 139-1234"5678';
 
-        $expected = 'DiyFormBundle_captcha__86_139-1234_5678_456';
+        $expected = "DiyFormBundle_captcha__86_139-1234_5678_{$formId}";
         $actual = $this->getPhoneNumberService()->buildCaptchaCacheKey($form, $phoneNumber);
 
         $this->assertEquals($expected, $actual);
@@ -64,19 +72,13 @@ final class PhoneNumberServiceTest extends TestCase
 
     public function testBuildCaptchaCacheKey包含所有特殊字符处理(): void
     {
-        /*
-         * 模拟Form实体进行测试：
-         * 1. Form是Doctrine实体，代表表单定义
-         * 2. PhoneNumberService需要表单ID来构建验证码缓存key
-         * 3. 测试时使用Mock可控制ID返回值，保证测试的可预测性
-         */
-        // 创建表单模拟对象
-        $form = $this->createMock(Form::class);
-        $form->method('getId')->willReturn(789);
+        // 创建真实的Form实体并持久化到数据库
+        $form = $this->createForm('测试表单全特殊-' . uniqid());
+        $formId = $form->getId();
 
         $phoneNumber = "+'/ 138-0013-8000";
 
-        $expected = 'DiyFormBundle_captcha_____138-0013-8000_789';
+        $expected = "DiyFormBundle_captcha_____138-0013-8000_{$formId}";
         $actual = $this->getPhoneNumberService()->buildCaptchaCacheKey($form, $phoneNumber);
 
         $this->assertEquals($expected, $actual);
@@ -84,20 +86,14 @@ final class PhoneNumberServiceTest extends TestCase
 
     public function testBuildCaptchaCacheKey空电话号码(): void
     {
-        /*
-         * 模拟Form实体进行测试：
-         * 1. Form是Doctrine实体，代表表单定义
-         * 2. PhoneNumberService需要表单ID来构建验证码缓存key
-         * 3. 测试时使用Mock可控制ID返回值，保证测试的可预测性
-         */
-        // 创建表单模拟对象
-        $form = $this->createMock(Form::class);
-        $form->method('getId')->willReturn(999);
+        // 创建真实的Form实体并持久化到数据库
+        $form = $this->createForm('测试表单空号码-' . uniqid());
+        $formId = $form->getId();
 
         $phoneNumber = '';
 
-        // 修正预期结果，空字符串不会生成额外的下划线
-        $expected = 'DiyFormBundle_captcha__999';
+        // 空字符串不会生成额外的下划线
+        $expected = "DiyFormBundle_captcha__{$formId}";
         $actual = $this->getPhoneNumberService()->buildCaptchaCacheKey($form, $phoneNumber);
 
         $this->assertEquals($expected, $actual);

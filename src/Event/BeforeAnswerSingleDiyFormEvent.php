@@ -7,7 +7,7 @@ namespace DiyFormBundle\Event;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Contracts\EventDispatcher\Event;
 
-class BeforeAnswerSingleDiyFormEvent extends Event
+final class BeforeAnswerSingleDiyFormEvent extends Event
 {
     use FieldAware;
 

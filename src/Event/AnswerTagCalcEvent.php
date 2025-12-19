@@ -6,7 +6,7 @@ namespace DiyFormBundle\Event;
 
 use Symfony\Contracts\EventDispatcher\Event;
 
-class AnswerTagCalcEvent extends Event
+final class AnswerTagCalcEvent extends Event
 {
     use RecordAware;
 

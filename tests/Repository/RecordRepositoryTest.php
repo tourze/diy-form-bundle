@@ -52,7 +52,7 @@ final class RecordRepositoryTest extends AbstractRepositoryTestCase
         $connection = self::getEntityManager()->getConnection();
         try {
             $schemaManager = $connection->createSchemaManager();
-            $table = $schemaManager->introspectTable('diy_form_record');
+            $table = $schemaManager->introspectTableByUnquotedName('diy_form_record');
 
             if (!$table->hasColumn('lockVersion')) {
                 self::markTestSkipped('lockVersion column does not exist in test database');

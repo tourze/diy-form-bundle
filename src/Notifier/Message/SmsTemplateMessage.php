@@ -9,7 +9,7 @@ use Symfony\Component\Notifier\Message\SmsMessage;
 /**
  * 国内比较多用的，带模板的消息类型.
  */
-class SmsTemplateMessage extends SmsMessage
+final class SmsTemplateMessage extends SmsMessage
 {
     /**
      * @var string 短信模板code

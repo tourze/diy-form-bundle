@@ -7,7 +7,7 @@ namespace DiyFormBundle\Event;
 use DiyFormBundle\Entity\Analyse;
 use Symfony\Contracts\EventDispatcher\Event;
 
-class RecordAnalyseTriggerEvent extends Event
+final class RecordAnalyseTriggerEvent extends Event
 {
     use RecordAware;
 

@@ -4,20 +4,22 @@ declare(strict_types=1);
 
 namespace DiyFormBundle\Procedure\Record;
 
+use DiyFormBundle\Entity\Data;
 use DiyFormBundle\Entity\Record;
 use DiyFormBundle\Event\RecordFormatEvent;
+use DiyFormBundle\Param\Record\GetUserFormRecordListParam;
 use DiyFormBundle\Repository\FormRepository;
 use DiyFormBundle\Repository\RecordRepository;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
-use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 use Tourze\JsonRPC\Core\Attribute\MethodDoc;
 use Tourze\JsonRPC\Core\Attribute\MethodExpose;
-use Tourze\JsonRPC\Core\Attribute\MethodParam;
 use Tourze\JsonRPC\Core\Attribute\MethodTag;
+use Tourze\JsonRPC\Core\Contracts\RpcParamInterface;
 use Tourze\JsonRPC\Core\Exception\ApiException;
 use Tourze\JsonRPC\Core\Procedure\BaseProcedure;
+use Tourze\JsonRPC\Core\Result\ArrayResult;
 use Tourze\JsonRPCPaginatorBundle\Procedure\PaginatorTrait;
 
 #[IsGranted(attribute: 'IS_AUTHENTICATED_FULLY')]
@@ -28,28 +30,27 @@ class GetUserFormRecordList extends BaseProcedure
 {
     use PaginatorTrait;
 
-    #[MethodParam(description: '表单ID')]
-    public ?string $formId = null;
-
     public function __construct(
         private readonly FormRepository $formRepository,
         private readonly RecordRepository $recordRepository,
         private readonly Security $security,
         private readonly EventDispatcherInterface $eventDispatcher,
-        private readonly NormalizerInterface $normalizer,
     ) {
     }
 
-    public function execute(): array
+    /**
+     * @phpstan-param GetUserFormRecordListParam $param
+     */
+    public function execute(GetUserFormRecordListParam|RpcParamInterface $param): ArrayResult
     {
         $qb = $this->recordRepository->createQueryBuilder('a');
         $qb->where('a.user = :user AND a.finished = true'); // 只看已完成的
         $qb->setParameter('user', $this->security->getUser());
 
         // 过滤
-        if (null !== $this->formId) {
+        if (null !== $param->formId) {
             $form = $this->formRepository->findOneBy([
-                'id' => $this->formId,
+                'id' => $param->formId,
                 'valid' => true,
             ]);
             if (null === $form) {
@@ -61,7 +62,7 @@ class GetUserFormRecordList extends BaseProcedure
 
         $qb->addOrderBy('a.id', 'DESC');
 
-        return $this->fetchList($qb, $this->formatItem(...));
+        return new ArrayResult($this->fetchList($qb, $this->formatItem(...), null, $param));
     }
 
     /**
@@ -69,18 +70,37 @@ class GetUserFormRecordList extends BaseProcedure
      */
     private function formatItem(Record $item): array
     {
-        $normalizedResult = $this->normalizer->normalize($item, 'array', ['groups' => 'restful_read']);
+        $result = [
+            'finished' => $item->isFinished(),
+            'startTime' => $item->getStartTime()?->format('c'),
+            'finishTime' => $item->getFinishTime()?->format('c'),
+            'dataList' => $this->formatDataList($item->getDataList()),
+        ];
 
-        if (!is_array($normalizedResult)) {
-            throw new \InvalidArgumentException('Failed to normalize record to array');
-        }
-
-        /** @var array<string, mixed> $normalizedResult */
         $event = new RecordFormatEvent();
         $event->setRecord($item);
-        $event->setResult($normalizedResult);
+        $event->setResult($result);
         $this->eventDispatcher->dispatch($event);
 
         return $event->getResult();
+    }
+
+    /**
+     * @param array<string, Data> $dataList
+     * @return array<string, array<string, mixed>>
+     */
+    private function formatDataList(array $dataList): array
+    {
+        $result = [];
+        foreach ($dataList as $sn => $data) {
+            $result[$sn] = [
+                'field' => $data->getField()?->retrieveApiArray(),
+                'input' => $data->getInput(),
+                'inputArray' => $data->getInputArray(),
+                'skip' => $data->isSkip(),
+            ];
+        }
+
+        return new ArrayResult($result);
     }
 }

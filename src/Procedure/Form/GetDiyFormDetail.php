@@ -6,40 +6,38 @@ namespace DiyFormBundle\Procedure\Form;
 
 use Carbon\CarbonImmutable;
 use DiyFormBundle\Entity\Form;
+use DiyFormBundle\Param\Form\GetDiyFormDetailParam;
 use DiyFormBundle\Repository\FormRepository;
 use Tourze\JsonRPC\Core\Attribute\MethodDoc;
 use Tourze\JsonRPC\Core\Attribute\MethodExpose;
 use Tourze\JsonRPC\Core\Attribute\MethodParam;
 use Tourze\JsonRPC\Core\Attribute\MethodTag;
+use Tourze\JsonRPC\Core\Contracts\RpcParamInterface;
 use Tourze\JsonRPC\Core\Exception\ApiException;
 use Tourze\JsonRPC\Core\Procedure\BaseProcedure;
+use Tourze\JsonRPC\Core\Result\ArrayResult;
 
 #[MethodTag(name: '动态表单')]
 #[MethodDoc(summary: '获取单个表单的详细信息')]
 #[MethodExpose(method: 'GetDiyFormDetail')]
 class GetDiyFormDetail extends BaseProcedure
 {
-    #[MethodParam(description: '表单ID')]
-    public string $formId = '2';
-
     public function __construct(private readonly FormRepository $formRepository)
     {
     }
 
     /**
-     * @return array<string, mixed>
+     * @phpstan-param GetDiyFormDetailParam $param
      */
-    public function execute(): array
+    public function execute(GetDiyFormDetailParam|RpcParamInterface $param): ArrayResult
     {
         $form = $this->formRepository->findOneBy([
-            'id' => $this->formId,
+            'id' => $param->formId,
             'valid' => true,
         ]);
-        if (null === $form) {
+        if (!$form instanceof Form) {
             throw new ApiException('找不到表单配置');
         }
-
-        assert($form instanceof Form);
 
         $now = CarbonImmutable::now();
         $startTime = $form->getStartTime();

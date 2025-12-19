@@ -7,7 +7,7 @@ namespace DiyFormBundle\Event;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Contracts\EventDispatcher\Event;
 
-class SubmitRecordEvent extends Event
+final class SubmitRecordEvent extends Event
 {
     use RecordAware;
 

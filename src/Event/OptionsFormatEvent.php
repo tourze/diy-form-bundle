@@ -10,7 +10,7 @@ use Symfony\Contracts\EventDispatcher\Event;
 /**
  * 有一些情景，我们需要额外插入特殊的选项，可以在这里进行.
  */
-class OptionsFormatEvent extends Event
+final class OptionsFormatEvent extends Event
 {
     use RecordAware;
     use FieldAware;

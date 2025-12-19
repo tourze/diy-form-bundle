@@ -23,6 +23,27 @@ final class ExpressionEngineServiceTest extends AbstractIntegrationTestCase
         // 集成测试基类要求的初始化方法
     }
 
+    private function createFormAndRecord(): Record
+    {
+        $form = new Form();
+        $form->setTitle('测试表单-' . uniqid());
+        $form->setValid(true);
+        $form->setStartTime(new \DateTimeImmutable());
+        $form->setEndTime(new \DateTimeImmutable('+1 hour'));
+
+        $record = new Record();
+        $record->setForm($form);
+        $record->setStartTime(new \DateTimeImmutable());
+        $record->setFinished(false);
+
+        $em = self::getEntityManager();
+        $em->persist($form);
+        $em->persist($record);
+        $em->flush();
+
+        return $record;
+    }
+
     public function testServiceCanBeInstantiated(): void
     {
         $service = self::getService(ExpressionEngineService::class);
@@ -33,9 +54,8 @@ final class ExpressionEngineServiceTest extends AbstractIntegrationTestCase
     {
         $service = self::getService(ExpressionEngineService::class);
 
-        // 创建一个Mock的Record对象用于测试
-        $record = $this->createMock(Record::class);
-        $record->method('getForm')->willReturn($this->createMock(Form::class));
+        // 创建真实的Record对象用于测试
+        $record = $this->createFormAndRecord();
 
         // 测试简单表达式
         $result = $service->evaluateWithRecord('1 + 1', $record, []);
@@ -48,5 +68,21 @@ final class ExpressionEngineServiceTest extends AbstractIntegrationTestCase
         // 测试字符串表达式
         $result = $service->evaluateWithRecord('"hello"', $record, []);
         $this->assertEquals('hello', $result);
+    }
+
+    public function testEvaluateWithRecordAccessesFormAndRecordVariables(): void
+    {
+        $service = self::getService(ExpressionEngineService::class);
+
+        // 创建真实的Record对象用于测试
+        $record = $this->createFormAndRecord();
+
+        // 测试访问 record 变量
+        $result = $service->evaluateWithRecord('record', $record, []);
+        $this->assertSame($record, $result);
+
+        // 测试访问 form 变量
+        $result = $service->evaluateWithRecord('form', $record, []);
+        $this->assertSame($record->getForm(), $result);
     }
 }

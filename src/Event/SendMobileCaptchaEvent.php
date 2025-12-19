@@ -7,7 +7,7 @@ namespace DiyFormBundle\Event;
 use DiyFormBundle\Entity\Form;
 use Tourze\UserEventBundle\Event\UserInteractionEvent;
 
-class SendMobileCaptchaEvent extends UserInteractionEvent
+final class SendMobileCaptchaEvent extends UserInteractionEvent
 {
     private Form $form;
 

@@ -6,7 +6,7 @@ namespace DiyFormBundle\DependencyInjection;
 
 use Tourze\SymfonyDependencyServiceLoader\AutoExtension;
 
-class DiyFormExtension extends AutoExtension
+final class DiyFormExtension extends AutoExtension
 {
     protected function getConfigDir(): string
     {

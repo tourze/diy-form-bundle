@@ -6,16 +6,17 @@ namespace DiyFormBundle\Procedure\Step;
 
 use Carbon\CarbonImmutable;
 use DiyFormBundle\Entity\Record;
+use DiyFormBundle\Param\Step\CreateDiyFormRecordParam;
 use DiyFormBundle\Repository\FormRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
-use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 use Tourze\JsonRPC\Core\Attribute\MethodDoc;
 use Tourze\JsonRPC\Core\Attribute\MethodExpose;
-use Tourze\JsonRPC\Core\Attribute\MethodParam;
 use Tourze\JsonRPC\Core\Attribute\MethodTag;
+use Tourze\JsonRPC\Core\Contracts\RpcParamInterface;
 use Tourze\JsonRPC\Core\Exception\ApiException;
+use Tourze\JsonRPC\Core\Result\ArrayResult;
 use Tourze\JsonRPCLockBundle\Procedure\LockableProcedure;
 use Tourze\JsonRPCLogBundle\Attribute\Log;
 
@@ -26,24 +27,20 @@ use Tourze\JsonRPCLogBundle\Attribute\Log;
 #[IsGranted(attribute: 'IS_AUTHENTICATED_FULLY')]
 class CreateDiyFormRecord extends LockableProcedure
 {
-    #[MethodParam(description: '表单ID')]
-    public int $formId = 2;
-
     public function __construct(
         private readonly FormRepository $formRepository,
-        private readonly NormalizerInterface $normalizer,
         private readonly Security $security,
         private readonly EntityManagerInterface $entityManager,
     ) {
     }
 
     /**
-     * @return array<string, mixed>
+     * @phpstan-param CreateDiyFormRecordParam $param
      */
-    public function execute(): array
+    public function execute(CreateDiyFormRecordParam|RpcParamInterface $param): ArrayResult
     {
         $form = $this->formRepository->findOneBy([
-            'id' => $this->formId,
+            'id' => $param->formId,
             'valid' => true,
         ]);
         if (null === $form) {
@@ -61,13 +58,11 @@ class CreateDiyFormRecord extends LockableProcedure
         $this->entityManager->persist($record);
         $this->entityManager->flush();
 
-        $result = $this->normalizer->normalize($record, 'array', ['groups' => 'restful_read']);
-
-        if (!is_array($result)) {
-            throw new \RuntimeException('Failed to normalize record to array');
-        }
-
-        /** @var array<string, mixed> $result */
-        return $result;
+        return new ArrayResult([
+            'id' => $record->getId(),
+            'finished' => $record->isFinished(),
+            'startTime' => $record->getStartTime()?->format('c'),
+            'finishTime' => $record->getFinishTime()?->format('c'),
+        ]);
     }
 }
